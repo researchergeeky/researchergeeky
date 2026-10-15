@@ -76,8 +76,8 @@ const authenticateToken = async (req, res, next) => {
 
         if (!user) return res.status(404).json({ error: 'User not found.' });
 
-        // If the DB has an active session ID but it doesn't match the one in the token, reject request
-        if (user.activeSessionId && user.activeSessionId !== decoded.sessionId) {
+        // BYPASS: Ignore the session conflict check if the user is an admin
+        if (user.role !== 'admin' && user.activeSessionId && user.activeSessionId !== decoded.sessionId) {
             return res.status(401).json({ 
                 error: 'SESSION_CONFLICT', 
                 message: 'You have been logged out because your account was accessed from another device.' 
@@ -90,7 +90,6 @@ const authenticateToken = async (req, res, next) => {
         return res.status(403).json({ error: 'Invalid or expired token. Please log in again.' });
     }
 };
-
 const isAdmin = (req, res, next) => {
     if (req.user && req.user.role === 'admin') {
         next();
@@ -439,7 +438,6 @@ app.post('/api/auth/register', async (req, res) => {
 });
 app.post('/api/auth/login', async (req, res) => {
     try {
-        // Now accepting deviceName and forceLogin
         const { email, password, role, deviceName, forceLogin } = req.body;
         if(!email || !password) return res.status(400).json({ error: 'Email and password required.' });
 
@@ -465,33 +463,33 @@ app.post('/api/auth/login', async (req, res) => {
             }
         }
 
-        // --- SINGLE DEVICE LOGIN LOGIC (Admins bypass this check) ---
-        // If an active session exists, user is a student, and user hasn't explicitly clicked "logout other device"
-        if (user.role !== 'admin' && user.activeSessionId && !forceLogin) {
-            return res.status(409).json({
-                error: 'ACTIVE_SESSION',
-                message: 'You are already logged in on another device.',
-                activeDeviceName: user.activeDeviceName || 'Unknown Device'
-            });
+        let sessionId = uuidv4();
+
+        // BYPASS: Only enforce active session tracking for students
+        if (user.role !== 'admin') {
+            if (user.activeSessionId && !forceLogin) {
+                return res.status(409).json({
+                    error: 'ACTIVE_SESSION',
+                    message: 'You are already logged in on another device.',
+                    activeDeviceName: user.activeDeviceName || 'Unknown Device'
+                });
+            }
+
+            const currentDeviceName = deviceName || req.headers['user-agent'] || 'Unknown Device';
+
+            // Update DB with the new active session ID and device name
+            await dynamoDB.update({
+                TableName: TABLE_USERS,
+                Key: { email },
+                UpdateExpression: 'set activeSessionId = :sid, activeDeviceName = :dn',
+                ExpressionAttributeValues: {
+                    ':sid': sessionId,
+                    ':dn': currentDeviceName
+                }
+            }).promise();
         }
 
-        // Generate new session ID
-        const sessionId = uuidv4();
-        const currentDeviceName = deviceName || req.headers['user-agent'] || 'Unknown Device';
-
-        // Update DB with the new active session ID and device name
-        await dynamoDB.update({
-            TableName: TABLE_USERS,
-            Key: { email },
-            UpdateExpression: 'set activeSessionId = :sid, activeDeviceName = :dn',
-            ExpressionAttributeValues: {
-                ':sid': sessionId,
-                ':dn': currentDeviceName
-            }
-        }).promise();
-        // ---------------------------------
-
-        // Add sessionId to JWT Payload so the middleware can check it later
+        // Add sessionId to JWT Payload
         const tokenPayload = { email: user.email, name: user.name, role: user.role, level: user.level, sessionId };
         const token = jwt.encode(tokenPayload, JWT_SECRET);
 
