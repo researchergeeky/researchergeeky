@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geeky Researcher | Verification Pending</title>
+    
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            /* Theme Variables */
+            --bg-ivory: #FDFCF8;
+            --bg-offwhite: #F4F2EC;
+            --forest-green: #143623;
+            --botanical-green: #255C3E;
+            --leaf-green: #378057;
+            --gold-accent: #C5A059;
+            --gold-light: #E8D3A7;
+            --text-charcoal: #232725;
+            --text-muted: #59655E;
+            --border-light: #E2DFD3;
+            --border-dark: #C6C2B4;
+            --white: #FFFFFF;
+            
+            --font-editorial: 'Playfair Display', serif;
+            --font-sans: 'Inter', sans-serif;
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--bg-ivory);
+            color: var(--text-charcoal);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 24px;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23143623' fill-opacity='0.02'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        a { text-decoration: none; color: inherit; transition: var(--transition); }
+        button { cursor: pointer; border: none; background: none; font-family: inherit; transition: var(--transition); }
+
+        .page-container {
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .premium-card {
+            width: 100%;
+            background-color: var(--white);
+            padding: 48px;
+            border-radius: 2px;
+            box-shadow: 0 20px 40px rgba(20, 54, 35, 0.06);
+            border: 1px solid var(--border-light);
+            border-top: 4px solid var(--forest-green);
+            position: relative;
+            text-align: center;
+        }
+
+        /* Status Icons */
+        .status-icon-wrapper {
+            width: 80px; height: 80px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 24px;
+            font-size: 2rem;
+            position: relative;
+        }
+        
+        .icon-pending {
+            background-color: var(--bg-offwhite);
+            color: var(--gold-accent);
+            border: 1px solid var(--border-dark);
+        }
+        .icon-pending::before {
+            content: '';
+            position: absolute;
+            inset: -8px;
+            border-radius: 50%;
+            border: 2px dashed var(--gold-light);
+            animation: spinSlow 8s linear infinite;
+        }
+
+        .icon-success {
+            background-color: #f0fdf4;
+            color: #2E7D32;
+            border: 1px solid #dcfce7;
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        /* Typography */
+        .status-title {
+            font-family: var(--font-editorial);
+            font-size: 2.2rem;
+            color: var(--forest-green);
+            margin-bottom: 12px;
+            font-weight: 700;
+        }
+        .status-desc {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            margin-bottom: 32px;
+            line-height: 1.6;
+        }
+
+        /* Status Banner */
+        .status-banner {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            background-color: var(--bg-ivory);
+            border: 1px solid var(--border-light);
+            padding: 12px 24px;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--forest-green);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+        }
+        .status-spinner { color: var(--gold-accent); font-size: 1.1rem; }
+
+        /* Buttons */
+        .btn-primary {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 100%; padding: 16px 32px;
+            font-size: 0.9rem; font-weight: 700; letter-spacing: 1.5px;
+            text-transform: uppercase; border-radius: 2px;
+            background-color: var(--forest-green); color: var(--white);
+            border: 1px solid var(--forest-green); transition: var(--transition);
+            margin-top: 16px;
+        }
+        .btn-primary:hover {
+            background-color: var(--botanical-green); border-color: var(--botanical-green);
+            transform: translateY(-2px); box-shadow: 0 8px 15px rgba(20, 54, 35, 0.15);
+        }
+
+        .btn-outline {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 100%; padding: 16px 32px;
+            font-size: 0.9rem; font-weight: 700; letter-spacing: 1.5px;
+            text-transform: uppercase; border-radius: 2px;
+            background-color: transparent; color: var(--text-muted);
+            border: 1px solid var(--border-dark); transition: var(--transition);
+            margin-top: 16px;
+        }
+        .btn-outline:hover {
+            background-color: var(--bg-offwhite); color: var(--forest-green); border-color: var(--forest-green);
+            transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
+        .action-links {
+            display: flex; gap: 12px; width: 100%;
+        }
+        .action-links .btn-primary, .action-links .btn-outline {
+            margin-top: 16px; flex: 1; padding: 14px 16px; font-size: 0.8rem;
+        }
+
+        /* Details & Footer */
+        .footer-details {
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border-light);
+            font-size: 0.85rem;
+        }
+        .footer-details p { color: var(--text-muted); margin-bottom: 12px; }
+        .footer-details strong { color: var(--forest-green); font-weight: 600; }
+
+        /* Utility Classes */
+        .hidden { display: none !important; }
+        .fade-in { animation: fadeIn 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) forwards; }
+
+        /* Xeta Tech Footer */
+        .agency-credit {
+            text-align: center; margin-top: 48px; padding-top: 32px;
+            display: flex; flex-direction: column; align-items: center; gap: 8px;
+        }
+        .agency-title { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; color: var(--text-muted); font-weight: 700; }
+        .agency-credit img { height: 36px; opacity: 0.8; transition: var(--transition); margin: 6px 0; }
+        .agency-credit img:hover { opacity: 1; transform: scale(1.05); }
+        .agency-tagline { font-size: 0.85rem; color: var(--gold-accent); font-style: italic; font-family: var(--font-editorial); }
+        .agency-contact { font-size: 0.75rem; color: var(--text-muted); margin-top: 6px; font-weight: 500; }
+        .agency-contact a { color: var(--forest-green); font-weight: 700; transition: var(--transition); letter-spacing: 0.5px; }
+        .agency-contact a:hover { color: var(--gold-accent); }
+        .agency-separator { margin: 0 8px; color: var(--border-dark); }
+
+        /* Animations */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes spinSlow { 100% { transform: rotate(360deg); } }
+        @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 80% { transform: scale(1.1); } 100% { transform: scale(1); opacity: 1; } }
+
+    </style>
+</head>
+<body>
+
+    <div class="page-container">
+        
+        <div class="premium-card">
+            
+            <!-- Pending State -->
+            <div id="pending-state" class="fade-in">
+                <div class="status-icon-wrapper icon-pending">
+                    <i class="fa-solid fa-hourglass-half"></i>
+                </div>
+                
+                <h2 class="status-title">Pending Approval</h2>
+                <p class="status-desc">
+                    We have successfully received your enrollment request. Your payment is currently undergoing verification by our administration team. Please wait here or monitor your email for confirmation.
+                </p>
+                
+                <div class="status-banner">
+                    <i class="fa-solid fa-circle-notch fa-spin status-spinner"></i>
+                    <span id="status-text">Awaiting Admin Verification</span>
+                </div>
+            </div>
+
+            <!-- Success State -->
+            <div id="success-state" class="hidden">
+                <div class="status-icon-wrapper icon-success">
+                    <i class="fa-solid fa-check"></i>
+                </div>
+                
+                <h2 class="status-title">Account Approved!</h2>
+                <p class="status-desc">
+                    Your payment has been successfully verified. You now have full, unrestricted access to the Geeky Researcher learning ecosystem.
+                </p>
+                
+                <button onclick="window.location.href='login.html'" class="btn-primary">
+                    Proceed to Login <i class="fa-solid fa-arrow-right-long" style="margin-left: 10px;"></i>
+                </button>
+            </div>
+
+            <!-- Footer Details -->
+            <div class="footer-details" id="footer-links">
+                <p>Registered Account: <strong id="display-email">...</strong></p>
+                <div class="action-links">
+                    <a href="index.html" class="btn-outline">
+                        <i class="fa-solid fa-house" style="margin-right: 8px;"></i> Home
+                    </a>
+                    <a href="login.html" class="btn-primary" style="margin-top: 16px;">
+                        Login <i class="fa-solid fa-arrow-right-long" style="margin-left: 8px;"></i>
+                    </a>
+                </div>
+            </div>
+            
+        </div>
+
+        <!-- Agency Credit -->
+        <div class="agency-credit">
+            <p class="agency-title">Designed & Developed by</p>
+            <a href="https://xetasolutions.in/" target="_blank">
+                <img src="https://res.cloudinary.com/dpz44zf0z/image/upload/v1760704788/XETA_SOLUTIONS_LOGO_bcsbwh.png" alt="Xeta Tech Solutions">
+            </a>
+            <p class="agency-tagline">Engineering the Future of Enterprise Technologies</p>
+            <div class="agency-contact">
+                <a href="https://xetasolutions.in/" target="_blank">xetasolutions.in</a>
+                <span class="agency-separator">|</span>
+                <a href="mailto:info@xetatechsolutions.com">info@xetatechsolutions.com</a> 
+                <span class="agency-separator">|</span> 
+                <a href="tel:9010408899">9010408899</a>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const API_BASE_URL = '/apis'; // Change this when deploying
+        let pollingInterval;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const email = localStorage.getItem('pendingEmail');
+            if (!email) {
+                // If they landed here directly without an email, send back to login
+                window.location.href = 'login.html';
+                return;
+            }
+
+            document.getElementById('display-email').textContent = email;
+            startPolling(email);
+        });
+
+        function startPolling(email) {
+            // Check status immediately, then every 10 seconds
+            checkStatus(email);
+            pollingInterval = setInterval(() => checkStatus(email), 10000);
+        }
+
+        async function checkStatus(email) {
+            try {
+                // Endpoint matching the original code's specification
+                const response = await fetch(`${API_BASE_URL}/auth/status?email=${encodeURIComponent(email)}`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    if (data.status === 'approved') {
+                        clearInterval(pollingInterval);
+                        localStorage.removeItem('pendingEmail'); // Clean up
+                        showSuccess();
+                    }
+                }
+            } catch (error) {
+                console.error("Error checking status:", error);
+                // Keep polling if there's a network error
+            }
+        }
+
+        function showSuccess() {
+            document.getElementById('pending-state').classList.add('hidden');
+            document.getElementById('footer-links').classList.add('hidden');
+            
+            const successState = document.getElementById('success-state');
+            successState.classList.remove('hidden');
+            successState.classList.add('fade-in');
+        }
+    </script>
+</body>
+</html>

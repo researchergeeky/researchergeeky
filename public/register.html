@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geeky Researcher | Secure Enrollment</title>
+    
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            /* Theme Variables */
+            --bg-ivory: #FDFCF8;
+            --bg-offwhite: #F4F2EC;
+            --forest-green: #143623;
+            --botanical-green: #255C3E;
+            --leaf-green: #378057;
+            --gold-accent: #C5A059;
+            --gold-light: #E8D3A7;
+            --text-charcoal: #232725;
+            --text-muted: #59655E;
+            --border-light: #E2DFD3;
+            --border-dark: #C6C2B4;
+            --white: #FFFFFF;
+            --error-red: #d9534f;
+            --success-green: #2E7D32;
+            
+            --font-editorial: 'Playfair Display', serif;
+            --font-sans: 'Inter', sans-serif;
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--bg-ivory);
+            color: var(--text-charcoal);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23143623' fill-opacity='0.02'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        a { text-decoration: none; color: inherit; transition: var(--transition); }
+        button { cursor: pointer; border: none; background: none; font-family: inherit; transition: var(--transition); }
+
+        .navbar {
+            width: 100%;
+            padding: 18px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: rgba(253, 252, 248, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-light);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .nav-brand { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+        .nav-logo { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 2px solid var(--gold-accent); }
+        .nav-title-group { display: flex; flex-direction: column; }
+        .nav-title { font-family: var(--font-editorial); font-weight: 700; font-size: 1.25rem; color: var(--forest-green); line-height: 1.1; }
+        .nav-subtitle { font-size: 0.55rem; text-transform: uppercase; letter-spacing: 2px; color: var(--text-muted); font-weight: 700; }
+
+        .nav-links { display: flex; gap: 32px; align-items: center; }
+        .nav-links a { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); position: relative; padding-bottom: 4px; }
+        .nav-links a:hover, .nav-links a.active { color: var(--forest-green); }
+        .nav-links a::after {
+            content: ''; position: absolute; bottom: 0; left: 0; width: 0%; height: 2px;
+            background-color: var(--gold-accent); transition: var(--transition);
+        }
+        .nav-links a:hover::after, .nav-links a.active::after { width: 100%; }
+
+        .nav-actions { display: flex; align-items: center; gap: 12px; }
+        .nav-btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 10px 20px; font-size: 0.78rem; font-weight: 700; letter-spacing: 1px;
+            text-transform: uppercase; border-radius: 2px; transition: var(--transition);
+            white-space: nowrap;
+        }
+        .nav-btn-outline { border: 1px solid var(--border-dark); color: var(--forest-green); background: var(--white); }
+        .nav-btn-outline:hover { border-color: var(--forest-green); background: var(--bg-offwhite); }
+        .nav-btn-primary { background-color: var(--forest-green); color: var(--white); border: 1px solid var(--forest-green); }
+        .nav-btn-primary:hover { background-color: var(--botanical-green); border-color: var(--botanical-green); }
+        
+        .page-container {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 24px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .premium-card {
+            width: 100%;
+            background-color: var(--white);
+            padding: 48px;
+            border-radius: 2px;
+            box-shadow: 0 20px 40px rgba(20, 54, 35, 0.06);
+            border: 1px solid var(--border-light);
+            border-top: 4px solid var(--forest-green);
+            position: relative;
+        }
+
+        .card-top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .back-link {
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 6px 12px;
+            border-radius: 2px;
+            border: 1px solid var(--border-light);
+            background-color: var(--bg-ivory);
+        }
+        .back-link:hover { color: var(--forest-green); border-color: var(--forest-green); background-color: var(--bg-offwhite); }
+
+        .header-logo { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; border: 2px solid var(--gold-light); margin: 0 auto 24px; display: block; box-shadow: 0 8px 16px rgba(0,0,0,0.05); }
+        .form-title { font-family: var(--font-editorial); font-size: 2.2rem; color: var(--forest-green); text-align: center; margin-bottom: 8px; font-weight: 700; }
+        .form-subtitle { font-size: 0.95rem; color: var(--text-muted); text-align: center; margin-bottom: 32px; }
+
+        /* Wizard Tracker - Fixed for Desktop & Mobile */
+        .wizard-tracker {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 40px;
+            border-bottom: 1px solid var(--border-light);
+        }
+        .step-indicator {
+            font-size: 0.82rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-muted);
+            position: relative;
+            transition: var(--transition);
+            text-align: center;
+            padding: 0 4px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1.3;
+        }
+        .step-active { color: var(--forest-green); }
+        .step-active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: var(--gold-accent);
+        }
+        .step-pending { opacity: 0.5; }
+
+        .grid-2-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        .input-group { margin-bottom: 24px; }
+        .input-label { display: block; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--forest-green); margin-bottom: 8px; }
+        
+        .premium-input {
+            width: 100%;
+            padding: 14px 16px;
+            background-color: var(--bg-ivory);
+            border: 1px solid var(--border-dark);
+            border-radius: 2px;
+            font-family: var(--font-sans);
+            font-size: 0.95rem;
+            color: var(--text-charcoal);
+            transition: var(--transition);
+        }
+        .premium-input:focus { outline: none; border-color: var(--gold-accent); background-color: var(--white); box-shadow: 0 0 0 4px rgba(197, 160, 89, 0.1); }
+        
+        /* Payment Plans (Radio Cards) */
+        .plan-section { margin-top: 32px; padding-top: 32px; border-top: 1px solid var(--border-light); }
+        .plan-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+        .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border-width: 0; }
+        
+        .plan-card {
+            border: 1px solid var(--border-dark);
+            border-radius: 2px;
+            padding: 24px 16px;
+            background: var(--white);
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+            text-align: center;
+            height: 100%;
+            display: flex; flex-direction: column;
+        }
+        .plan-card:hover { border-color: var(--botanical-green); transform: translateY(-2px); }
+        .plan-radio:checked + .plan-card { border-color: var(--gold-accent); background-color: var(--bg-offwhite); box-shadow: 0 8px 20px rgba(197, 160, 89, 0.15); }
+        
+        .plan-title { font-size: 0.9rem; font-weight: 700; color: var(--forest-green); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px; }
+        .plan-desc { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 12px; }
+        .plan-price { font-family: var(--font-editorial); font-size: 1.5rem; font-weight: 700; color: var(--gold-accent); margin-bottom: 4px; }
+        .plan-dur { font-size: 0.7rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; margin-top: auto;}
+        
+        .check-icon { display: none; position: absolute; top: 12px; right: 12px; color: var(--gold-accent); font-size: 1.2rem; }
+        .plan-radio:checked + .plan-card .check-icon { display: block; }
+
+        /* Terms & Conditions Checkbox */
+        .terms-group {
+            margin-top: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .terms-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.85rem;
+            color: var(--text-charcoal);
+            cursor: pointer;
+            line-height: 1.5;
+        }
+        .terms-checkbox {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--forest-green);
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .terms-link {
+            color: var(--forest-green);
+            font-weight: 700;
+            text-decoration: underline;
+            transition: var(--transition);
+        }
+        .terms-link:hover {
+            color: var(--gold-accent);
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center;
+            padding: 14px 32px; font-size: 0.85rem; font-weight: 700;
+            letter-spacing: 1.5px; text-transform: uppercase; border-radius: 2px;
+            transition: var(--transition); gap: 10px; width: 100%;
+        }
+        .btn-primary { background-color: var(--forest-green); color: var(--white); border: 1px solid var(--forest-green); }
+        .btn-primary:hover { background-color: var(--botanical-green); border-color: var(--botanical-green); transform: translateY(-2px); box-shadow: 0 8px 15px rgba(20, 54, 35, 0.15); }
+        .btn-outline { background-color: transparent; color: var(--text-muted); border: 1px solid var(--border-dark); }
+        .btn-outline:hover { background-color: var(--bg-offwhite); color: var(--forest-green); border-color: var(--forest-green); }
+        
+        .btn-gold { background-color: var(--gold-accent); color: var(--white); border: 1px solid var(--gold-accent); }
+        .btn-gold:hover { background-color: #b38e4a; transform: translateY(-2px); box-shadow: 0 8px 15px rgba(197, 160, 89, 0.3); text-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+
+        .btn-disabled { opacity: 0.6; cursor: not-allowed; pointer-events: none; }
+
+        /* Alerts */
+        .alert-box {
+            display: none; padding: 14px 16px; border-radius: 2px; font-size: 0.85rem;
+            font-weight: 600; margin-bottom: 24px; align-items: flex-start; gap: 12px; line-height: 1.5;
+            animation: slideDown 0.3s ease-out forwards;
+        }
+        .alert-box.active { display: flex; }
+        .alert-error { background-color: #fdf2f2; border: 1px solid #f8d7da; color: var(--error-red); border-left: 4px solid var(--error-red); }
+        .alert-success { background-color: #f0fdf4; border: 1px solid #dcfce7; color: var(--success-green); border-left: 4px solid var(--success-green); }
+
+        /* Utility Classes */
+        .hidden-step { display: none !important; }
+        .hidden { display: none !important; }
+        .fade-in { animation: fadeIn 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) forwards; }
+
+        .otp-wrapper {
+            padding: 32px 0;
+            text-align: center;
+        }
+        .otp-icon-wrapper {
+            width: 64px; height: 64px; margin: 0 auto 24px;
+            background: var(--bg-offwhite); border: 1px solid var(--border-dark);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            color: var(--forest-green); font-size: 1.5rem;
+        }
+        .otp-boxes {
+            display: flex; justify-content: center; gap: 8px; margin: 32px 0;
+        }
+        .otp-box {
+            width: 44px; height: 54px;
+            background-color: var(--bg-ivory);
+            border: 1px solid var(--border-dark);
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-charcoal);
+            text-align: center;
+            transition: var(--transition);
+        }
+        .otp-box:focus {
+            outline: none; border-color: var(--gold-accent);
+            background-color: var(--white);
+            box-shadow: 0 0 0 4px rgba(197, 160, 89, 0.1);
+            transform: translateY(-2px);
+        }
+        .otp-box.validating {
+            animation: otpValidatingWave 1s infinite ease-in-out;
+        }
+        @keyframes otpValidatingWave {
+            0%, 100% { transform: translateY(0); border-color: var(--border-dark); box-shadow: none; }
+            50% { transform: translateY(-6px); border-color: var(--botanical-green); box-shadow: 0 6px 12px rgba(37, 92, 62, 0.2); background-color: var(--white); }
+        }
+
+        /* View 3: Payment Receipt Mode */
+        .payment-container { text-align: center; }
+        .payment-icon {
+            width: 64px; height: 64px; margin: 0 auto 24px;
+            background: var(--bg-offwhite); border: 1px solid var(--border-dark);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            color: var(--botanical-green); font-size: 1.5rem;
+        }
+        .payment-title { font-family: var(--font-editorial); font-size: 2rem; color: var(--forest-green); margin-bottom: 12px; font-weight: 700;}
+        .payment-subtitle { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 32px; }
+        
+        .qr-box {
+            display: inline-block; padding: 24px; background: var(--white);
+            border: 1px solid var(--border-light); box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            margin-bottom: 32px; border-radius: 2px;
+        }
+        .qr-box img { width: 180px; height: 180px; object-fit: contain; }
+        
+        .receipt-box {
+            max-width: 400px; margin: 0 auto 32px; text-align: left;
+            background: var(--bg-ivory); border: 1px solid var(--border-light);
+            border-top: 4px solid var(--gold-accent); padding: 24px;
+        }
+        .receipt-list { list-style: none; }
+        .receipt-list li {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 12px 0; border-bottom: 1px dashed var(--border-light); font-size: 0.85rem;
+        }
+        .receipt-list li:last-child { border-bottom: none; padding-bottom: 0; padding-top: 16px; margin-top: 8px; border-top: 1px solid var(--border-dark); }
+        .receipt-label { font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-size: 0.75rem;}
+        .receipt-value { font-weight: 600; color: var(--forest-green); }
+        .receipt-value.highlight { color: var(--gold-accent); }
+        .receipt-value.total { font-family: var(--font-editorial); font-size: 1.5rem; font-weight: 700; }
+
+        /* Footer Branding */
+        .agency-credit {
+            text-align: center; margin-top: 40px; padding-top: 40px;
+            display: flex; flex-direction: column; align-items: center; gap: 8px;
+        }
+        .agency-title { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; color: var(--text-muted); font-weight: 700; }
+        .agency-credit img { height: 40px; opacity: 0.8; transition: var(--transition); margin: 4px 0; }
+        .agency-credit img:hover { opacity: 1; transform: scale(1.05); }
+        .agency-tagline { font-size: 0.85rem; color: var(--gold-accent); font-style: italic; font-family: var(--font-editorial); }
+        .agency-contact { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; }
+        .agency-contact a { color: var(--forest-green); font-weight: 700; transition: var(--transition); letter-spacing: 0.5px; }
+        .agency-contact a:hover { color: var(--gold-accent); }
+
+        /* Animations */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes shimmer { 0% { left: -100%; } 20% { left: 200%; } 100% { left: 200%; } }
+
+        @media (max-width: 1023px) {
+            .nav-links { display: none; }
+        }
+        @media (max-width: 768px) {
+            .navbar { padding: 14px 16px; }
+            .nav-btn { padding: 8px 14px; font-size: 0.72rem; }
+            .page-container { padding: 24px 16px; }
+            .grid-2-col { grid-template-columns: 1fr; gap: 16px; }
+            .plan-grid { grid-template-columns: 1fr; }
+            .premium-card { padding: 28px 20px; }
+            .form-title { font-size: 1.75rem; }
+            .wizard-tracker { gap: 4px; margin-bottom: 28px; }
+            .step-indicator {
+                font-size: 0.65rem;
+                letter-spacing: 0.3px;
+                padding: 0 2px 12px;
+            }
+        }
+        @media (max-width: 480px) {
+            .nav-title { font-size: 1.05rem; }
+            .nav-subtitle { display: none; }
+            .step-indicator { font-size: 0.6rem; letter-spacing: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <a href="index.html" class="nav-brand">
+            <img src="https://res.cloudinary.com/dzuxwvamy/image/upload/v1791733103/WhatsApp_Image_2026-10-11_at_12.57.36_PM_wl6n9r.jpg" alt="Geeky Researcher Logo" class="nav-logo">
+            <div class="nav-title-group">
+                <span class="nav-title">Geeky Researcher</span>
+                <span class="nav-subtitle">Secure Portal</span>
+            </div>
+        </a>
+
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="index.html#courses">Programmes</a>
+            <a href="login.html">Student Login</a>
+        </div>
+
+        <div class="nav-actions">
+            <a href="index.html" class="nav-btn nav-btn-outline">
+                <i class="fa-solid fa-house"></i> <span>Home</span>
+            </a>
+            <a href="login.html" class="nav-btn nav-btn-primary">
+                <i class="fa-solid fa-right-to-bracket"></i> <span>Login</span>
+            </a>
+        </div>
+    </nav>
+
+    <div class="page-container">
+        
+        <div class="premium-card">
+            <div class="card-top-bar">
+                <a href="index.html" class="back-link">
+                    <i class="fa-solid fa-house"></i> Home
+                </a>
+                <a href="login.html" class="back-link">
+                    Login <i class="fa-solid fa-arrow-right"></i>
+                </a>
+            </div>
+            
+            <!-- Header -->
+            <div style="margin-top: 8px;">
+                <img src="https://res.cloudinary.com/dzuxwvamy/image/upload/v1791733103/WhatsApp_Image_2026-10-11_at_12.57.36_PM_wl6n9r.jpg" alt="Logo" class="header-logo">
+                <h2 class="form-title">Student Enrollment</h2>
+                <p class="form-subtitle">Join Geeky Researcher to access exclusive academic modules.</p>
+            </div>
+
+            <!-- Wizard Tracker -->
+            <div class="wizard-tracker">
+                <div id="ind-1" class="step-indicator step-active">1. Academic Details</div>
+                <div id="ind-2" class="step-indicator step-pending">2. Identity Verification</div>
+                <div id="ind-3" class="step-indicator step-pending">3. Secure Payment</div>
+            </div>
+
+            <!-- Global Alert Message -->
+            <div id="alert-message" class="alert-box"></div>
+
+            <!-- STEP 1: REGISTRATION FORM -->
+            <div id="step-form" class="fade-in">
+                <form id="registrationForm" onsubmit="handleSendOTP(event)">
+                    
+                    <div class="grid-2-col">
+                        <div class="input-group" style="margin-bottom: 0;">
+                            <label class="input-label">Full Name</label>
+                            <input type="text" id="regName" required class="premium-input" placeholder="Enter your full name">
+                        </div>
+                        <div class="input-group" style="margin-bottom: 0;">
+                            <label class="input-label">Email Address</label>
+                            <input type="email" id="regEmail" required class="premium-input" placeholder="student@institute.edu">
+                        </div>
+                        <div class="input-group" style="margin-bottom: 0;">
+                            <label class="input-label">Mobile Number</label>
+                            <input type="tel" id="regMobile" required class="premium-input" placeholder="+91">
+                        </div>
+                        <div class="input-group" style="margin-bottom: 0;">
+                            <label class="input-label">Institute / Organization</label>
+                            <input type="text" id="regOrg" required class="premium-input" placeholder="University Name">
+                        </div>
+                        <div class="input-group" style="margin-bottom: 0;">
+                            <label class="input-label">Academic Access Level</label>
+                            <select id="regLevel" required class="premium-input" onchange="updatePlanUI()" style="cursor: pointer;">
+                                <option value="" disabled selected>Loading levels...</option>
+                            </select>
+                        </div>
+                        <div class="input-group" style="margin-bottom: 0;">
+                            <label class="input-label">Create Secure Password</label>
+                            <input type="password" id="regPassword" required class="premium-input" minlength="6" placeholder="Min. 6 characters">
+                        </div>
+                    </div>
+
+                    <!-- Payment Term Selection -->
+                    <div class="plan-section">
+                        <label class="input-label" style="text-align: center; font-size: 1rem; margin-bottom: 24px;">Select Payment Structure</label>
+                        <div class="plan-grid">
+                            
+                            <label class="relative cursor-pointer">
+                                <input type="radio" name="paymentPlan" value="100" class="plan-radio sr-only" checked onchange="updatePlanUI()">
+                                <div class="plan-card">
+                                    <div class="plan-title">Full Payment</div>
+                                    <div class="plan-desc">Complete upfront fee</div>
+                                    <div class="plan-price" id="price-100">--</div>
+                                    <div class="plan-dur" id="dur-100">Full access duration</div>
+                                    <i class="fa-solid fa-circle-check check-icon"></i>
+                                </div>
+                            </label>
+
+                            <label class="relative cursor-pointer">
+                                <input type="radio" name="paymentPlan" value="75" class="plan-radio sr-only" onchange="updatePlanUI()">
+                                <div class="plan-card">
+                                    <div class="plan-title">Term: 75%</div>
+                                    <div class="plan-desc">Partial fee advance</div>
+                                    <div class="plan-price" id="price-75">--</div>
+                                    <div class="plan-dur" id="dur-75">75% access duration</div>
+                                    <i class="fa-solid fa-circle-check check-icon"></i>
+                                </div>
+                            </label>
+
+                            <label class="relative cursor-pointer">
+                                <input type="radio" name="paymentPlan" value="50" class="plan-radio sr-only" onchange="updatePlanUI()">
+                                <div class="plan-card">
+                                    <div class="plan-title">Term: 50%</div>
+                                    <div class="plan-desc">Half fee advance</div>
+                                    <div class="plan-price" id="price-50">--</div>
+                                    <div class="plan-dur" id="dur-50">50% access duration</div>
+                                    <i class="fa-solid fa-circle-check check-icon"></i>
+                                </div>
+                            </label>
+
+                        </div>
+                    </div>
+
+                    <!-- Terms & Conditions Agreement -->
+                    <div class="terms-group">
+                        <label class="terms-label">
+                            <input type="checkbox" id="regTerms" required class="terms-checkbox">
+                            <span>I have read and agree to the <a href="terms_conditions.html" target="_blank" class="terms-link">Terms &amp; Conditions</a></span>
+                        </label>
+                    </div>
+
+                    <div style="margin-top: 28px; text-align: center;">
+                        <button type="submit" id="btnContinue" class="btn btn-primary" style="max-width: 300px;">
+                            <span id="textContinue">Continue to Verification</span>
+                            <i id="spinContinue" class="fa-solid fa-circle-notch fa-spin hidden"></i>
+                        </button>
+                    </div>
+                </form>
+                <p style="text-align: center; font-size: 0.85rem; color: var(--text-muted); margin-top: 28px;">
+                    Already have an account? <a href="login.html" style="color: var(--forest-green); font-weight: 700; text-decoration: underline;">Sign In</a>
+                </p>
+            </div>
+
+            <!-- STEP 2: REFINED OTP VERIFICATION -->
+            <div id="step-otp" class="hidden-step fade-in">
+                <div class="otp-wrapper">
+                    <div class="otp-icon-wrapper">
+                        <i class="fa-solid fa-envelope-open-text"></i>
+                    </div>
+                    <h3 class="form-title" style="font-size: 1.8rem;">Verify Your Email</h3>
+                    <p class="form-subtitle" style="margin-bottom: 8px;">
+                        A 6-digit secure code has been sent to
+                    </p>
+                    <p id="verify-email-display" style="font-weight: 700; color: var(--forest-green); margin-bottom: 32px; font-size: 1.1rem;"></p>
+                    
+                    <form onsubmit="handleFinalRegistration(event)">
+                        <!-- Hidden input to preserve existing JS logic flawlessly -->
+                        <input type="hidden" id="regOTP" required>
+                        
+                        <div class="otp-boxes" id="otp-container">
+                            <input type="text" class="otp-box" maxlength="1" pattern="[0-9]" inputmode="numeric" autocomplete="one-time-code" required>
+                            <input type="text" class="otp-box" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+                            <input type="text" class="otp-box" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+                            <input type="text" class="otp-box" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+                            <input type="text" class="otp-box" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+                            <input type="text" class="otp-box" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+                        </div>
+                        
+                        <div style="max-width: 300px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px;">
+                            <button type="submit" id="btnVerify" class="btn btn-primary">
+                                <span id="textVerify">Verify & Finalize Registration</span>
+                                <i id="spinVerify" class="fa-solid fa-circle-notch fa-spin hidden"></i>
+                            </button>
+                            
+                            <button type="button" onclick="goToStep(1)" class="btn btn-outline">
+                                Modify Details
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- STEP 3: PAYMENT QR -->
+            <div id="step-payment" class="hidden-step fade-in payment-container">
+                <div class="payment-icon">
+                    <i class="fa-solid fa-check"></i>
+                </div>
+                <h2 class="payment-title">Registration Reserved!</h2>
+                <p class="payment-subtitle">Scan the secure QR code below using any authorized UPI application (GPay, PhonePe, Paytm) to activate your enrollment instantly.</p>
+                
+                <div class="qr-box">
+                    <img id="qrCodeImg" src="" alt="Payment QR Code">
+                </div>
+                
+                <div class="receipt-box">
+                    <ul class="receipt-list">
+                        <li>
+                            <span class="receipt-label">Level Selected</span>
+                            <span class="receipt-value" id="display-level-pay">...</span>
+                        </li>
+                        <li>
+                            <span class="receipt-label">Plan Term</span>
+                            <span class="receipt-value" id="display-plan-pay">...</span>
+                        </li>
+                        <li>
+                            <span class="receipt-label">Initial Access</span>
+                            <span class="receipt-value highlight" id="display-duration">...</span>
+                        </li>
+                        <li>
+                            <span class="receipt-label">Amount Payable</span>
+                            <span class="receipt-value total" id="display-fee-pay">...</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div style="text-align: center;">
+                    <button onclick="window.location.href='payment-pending.html'" class="btn btn-primary" style="max-width: 400px;">
+                        I have completed the payment
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Agency Credit -->
+        <div class="agency-credit">
+            <p class="agency-title">Designed & Developed by</p>
+            <a href="https://xetatechsolutions.com/" target="_blank">
+                <img src="https://res.cloudinary.com/dpz44zf0z/image/upload/v1760704788/XETA_SOLUTIONS_LOGO_bcsbwh.png" alt="Xeta Tech Solutions">
+            </a>
+            <p class="agency-tagline">Engineering the Future of Enterprise Technologies</p>
+            <div class="agency-contact">
+                <a href="mailto:info@xetatechsolutions.com">info@xetatechsolutions.com</a> 
+                <span style="margin: 0 8px; color: var(--border-dark);">|</span> 
+                <a href="tel:9010408899">9010408899</a>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const API_BASE_URL = '/api'; // Fixed typo from '/apis' to '/api' preserved
+        let loadedLevels = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchLevels();
+            setupOTPInputs();
+        });
+
+        // Setup OTP 6-Box Logic
+        function setupOTPInputs() {
+            const otpInputs = document.querySelectorAll('.otp-box');
+            const hiddenInput = document.getElementById('regOTP');
+
+            otpInputs.forEach((input, index) => {
+                input.addEventListener('input', (e) => {
+                    // Restrict to numbers
+                    e.target.value = e.target.value.replace(/[^0-9]/g, '');
+                    
+                    if (e.target.value && index < otpInputs.length - 1) {
+                        otpInputs[index + 1].focus();
+                    }
+                    updateHiddenOTP();
+                });
+
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Backspace' && !e.target.value && index > 0) {
+                        otpInputs[index - 1].focus();
+                    }
+                });
+
+                input.addEventListener('paste', (e) => {
+                    e.preventDefault();
+                    const pastedData = e.clipboardData.getData('text').replace(/[^0-9]/g, '').slice(0, 6);
+                    for (let i = 0; i < pastedData.length; i++) {
+                        if (otpInputs[i]) {
+                            otpInputs[i].value = pastedData[i];
+                        }
+                    }
+                    if (pastedData.length > 0) {
+                        const focusIndex = Math.min(pastedData.length, 5);
+                        otpInputs[focusIndex].focus();
+                    }
+                    updateHiddenOTP();
+                });
+            });
+
+            function updateHiddenOTP() {
+                hiddenInput.value = Array.from(otpInputs).map(i => i.value).join('');
+            }
+        }
+
+        // UI Helpers
+        function showAlert(msg, type = 'error') {
+            const el = document.getElementById('alert-message');
+            
+            // Clean up old classes
+            el.className = 'alert-box';
+            
+            // Apply new styling based on theme
+            if(type === 'error') {
+                el.classList.add('alert-error');
+                el.innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="font-size: 1.1rem; flex-shrink: 0; margin-top: 2px;"></i> <span>${msg}</span>`;
+            } else {
+                el.classList.add('alert-success');
+                el.innerHTML = `<i class="fa-solid fa-circle-check" style="font-size: 1.1rem; flex-shrink: 0; margin-top: 2px;"></i> <span>${msg}</span>`;
+            }
+            
+            el.classList.add('active');
+        }
+        function hideAlert() { 
+            const el = document.getElementById('alert-message');
+            el.classList.remove('active');
+            setTimeout(() => { el.className = 'alert-box'; }, 300);
+        }
+
+        function goToStep(step) {
+            hideAlert();
+            document.getElementById('step-form').classList.add('hidden-step');
+            document.getElementById('step-otp').classList.add('hidden-step');
+            document.getElementById('step-payment').classList.add('hidden-step');
+            
+            document.getElementById('ind-1').className = "step-indicator step-pending";
+            document.getElementById('ind-2').className = "step-indicator step-pending";
+            document.getElementById('ind-3').className = "step-indicator step-pending";
+
+            if (step === 1) {
+                document.getElementById('step-form').classList.remove('hidden-step');
+                document.getElementById('ind-1').className = "step-indicator step-active";
+            } else if (step === 2) {
+                document.getElementById('step-otp').classList.remove('hidden-step');
+                document.getElementById('ind-2').className = "step-indicator step-active";
+                document.getElementById('verify-email-display').innerText = document.getElementById('regEmail').value;
+            } else if (step === 3) {
+                document.getElementById('step-payment').classList.remove('hidden-step');
+                document.getElementById('ind-3').className = "step-indicator step-active";
+            }
+        }
+
+        async function fetchLevels() {
+            const levelSelect = document.getElementById('regLevel');
+            try {
+                const response = await fetch(`${API_BASE_URL}/admin/levels`);
+                if (!response.ok) throw new Error('Failed to fetch levels');
+                
+                loadedLevels = await response.json();
+                
+                levelSelect.innerHTML = '<option value="" disabled selected>Select Access Level...</option>';
+                
+                if (loadedLevels.length === 0) {
+                    levelSelect.innerHTML += '<option value="" disabled>No levels available</option>';
+                    return;
+                }
+
+                loadedLevels.forEach(lvl => {
+                    levelSelect.innerHTML += `<option value="${lvl.levelName}">${lvl.levelName} (₹${lvl.fee})</option>`;
+                });
+            } catch (error) {
+                console.error('Error loading levels:', error);
+                levelSelect.innerHTML = '<option value="" disabled selected>Error loading levels. Check server connection.</option>';
+            }
+        }
+
+        function updatePlanUI() {
+            const levelName = document.getElementById('regLevel').value;
+            if (!levelName) return;
+
+            const lvl = loadedLevels.find(l => l.levelName === levelName);
+            if(!lvl) return;
+
+            const baseFee = parseFloat(lvl.fee);
+            const baseMonths = parseInt(lvl.durationMonths);
+            const daysTotal = baseMonths * 30; 
+
+            document.getElementById('price-100').textContent = `₹${baseFee.toFixed(0)}`;
+            document.getElementById('dur-100').textContent = `${baseMonths} months access`;
+
+            document.getElementById('price-75').textContent = `₹${(baseFee * 0.75).toFixed(0)}`;
+            document.getElementById('dur-75').textContent = `Approx ${(daysTotal * 0.75).toFixed(0)} days`;
+
+            document.getElementById('price-50').textContent = `₹${(baseFee * 0.50).toFixed(0)}`;
+            document.getElementById('dur-50').textContent = `Approx ${(daysTotal * 0.50).toFixed(0)} days`;
+        }
+
+        // Send OTP Request
+        async function handleSendOTP(e) {
+            e.preventDefault();
+
+            const termsAccepted = document.getElementById('regTerms').checked;
+            if (!termsAccepted) {
+                showAlert('Please agree to the Terms & Conditions to continue.', 'error');
+                return;
+            }
+            
+            const email = document.getElementById('regEmail').value;
+            const btn = document.getElementById('btnContinue');
+            const txt = document.getElementById('textContinue');
+            const spin = document.getElementById('spinContinue');
+
+            hideAlert();
+            btn.classList.add('btn-disabled');
+            txt.innerText = 'Sending Code...';
+            spin.classList.remove('hidden');
+
+            try {
+                // Request server to send OTP
+                const response = await fetch(`${API_BASE_URL}/auth/send-otp`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, type: 'register' })
+                });
+
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Failed to send OTP');
+                
+                showAlert('Secure verification code dispatched to your email successfully.', 'success');
+                setTimeout(() => goToStep(2), 1000);
+            } catch (error) {
+                showAlert(error.message);
+            } finally {
+                btn.classList.remove('btn-disabled');
+                txt.innerText = 'Continue to Verification';
+                spin.classList.add('hidden');
+            }
+        }
+
+        // Finalize Registration (Verifies OTP)
+        async function handleFinalRegistration(e) {
+            e.preventDefault();
+
+            const name = document.getElementById('regName').value;
+            const email = document.getElementById('regEmail').value;
+            const mobile = document.getElementById('regMobile').value;
+            const organization = document.getElementById('regOrg').value;
+            const level = document.getElementById('regLevel').value;
+            const password = document.getElementById('regPassword').value;
+            const paymentPlan = document.querySelector('input[name="paymentPlan"]:checked').value;
+            const otp = document.getElementById('regOTP').value;
+
+            const btn = document.getElementById('btnVerify');
+            const txt = document.getElementById('textVerify');
+            const spin = document.getElementById('spinVerify');
+            const otpInputs = document.querySelectorAll('.otp-box');
+
+            hideAlert();
+            btn.classList.add('btn-disabled');
+            txt.innerText = 'Authenticating...';
+            spin.classList.remove('hidden');
+
+            // Trigger sleek wave validation animation
+            otpInputs.forEach((box, i) => {
+                box.style.animationDelay = `${i * 0.1}s`;
+                box.classList.add('validating');
+            });
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, mobile, organization, level, password, paymentPlan, otp })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) throw new Error(data.error || 'Registration failed');
+
+                localStorage.setItem('pendingEmail', email);
+                const selectedLevelObj = loadedLevels.find(l => l.levelName === level);
+                setupPaymentScreen(selectedLevelObj, email, paymentPlan);
+                goToStep(3);
+                
+            } catch (error) {
+                showAlert(error.message);
+            } finally {
+                btn.classList.remove('btn-disabled');
+                txt.innerText = 'Verify & Finalize Registration';
+                spin.classList.add('hidden');
+
+                // Stop validation animation
+                otpInputs.forEach(box => box.classList.remove('validating'));
+            }
+        }
+
+        // Populate details on the Payment Screen
+        function setupPaymentScreen(levelObj, email, paymentPlan) {
+            const percent = parseInt(paymentPlan) / 100;
+            const amountPayable = (parseFloat(levelObj.fee) * percent).toFixed(0);
+            
+            let durationText = `${levelObj.durationMonths} Months`;
+            if(paymentPlan !== '100') {
+                 const days = Math.floor((parseInt(levelObj.durationMonths) * 30) * percent);
+                 durationText = `${days} days (Prorated) + 5 days grace`;
+            }
+
+            document.getElementById('display-level-pay').textContent = levelObj.levelName;
+            document.getElementById('display-plan-pay').textContent = `${paymentPlan}% Installment`;
+            document.getElementById('display-fee-pay').textContent = `₹${amountPayable}`;
+            document.getElementById('display-duration').textContent = durationText;
+            
+            const qrImg = document.getElementById('qrCodeImg');
+            if (levelObj.qrCodeUrl && levelObj.qrCodeUrl.trim() !== '') {
+                qrImg.src = levelObj.qrCodeUrl;
+            } else {
+                const upiId = "geekyresearcher@upi";
+                const upiUrl = `upi://pay?pa=${upiId}&pn=GeekyResearcher&am=${amountPayable}&cu=INR&tn=Reg_${paymentPlan}_${email}`;
+                qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upiUrl)}&margin=10`;
+            }
+        }
+    </script>
+</body>
+</html>
