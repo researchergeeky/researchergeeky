@@ -299,7 +299,7 @@
         </div>
     </main>
 
-    <!-- Folder Creation Modal -->
+    <!-- Folder Creation & Edit Modal -->
     <div id="folder-modal" class="fixed inset-0 z-[60] hidden">
         <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onclick="closeFolderModal()"></div>
         <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0 pointer-events-none">
@@ -308,10 +308,22 @@
                     <div class="w-10 h-10 rounded-full bg-brand-50 flex items-center justify-center text-brand-600">
                         <i class="fa-solid fa-folder-plus text-lg"></i>
                     </div>
-                    <h3 class="text-lg font-bold text-slate-900 tracking-tight">Create New Folder</h3>
+                    <h3 id="folder-modal-title" class="text-lg font-bold text-slate-900 tracking-tight">Create New Folder</h3>
                 </div>
-                <label class="block text-xs font-bold text-slate-600 uppercase tracking-wide mb-2">Folder Name</label>
-                <input type="text" id="folderNameInput" class="admin-input w-full mb-6 font-medium text-slate-800" placeholder="e.g., Biology Semester 1">
+                
+                <input type="hidden" id="folderEditId">
+                
+                <div class="space-y-4 mb-6">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wide mb-1">Folder Name</label>
+                        <input type="text" id="folderNameInput" class="admin-input w-full font-medium text-slate-800" placeholder="e.g., Biology Semester 1">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wide mb-1">Display Order <span class="text-slate-400 font-normal normal-case">(Optional)</span></label>
+                        <input type="number" id="folderOrderInput" class="admin-input w-full font-medium text-slate-800" placeholder="e.g. 1">
+                    </div>
+                </div>
+
                 <div class="flex justify-end gap-3 mt-4 pt-4 border-t border-slate-100">
                     <button onclick="closeFolderModal()" class="px-5 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">Cancel</button>
                     <button onclick="saveFolder()" class="px-5 py-2.5 text-sm font-medium text-white bg-brand-600 hover:bg-brand-700 rounded-lg transition-colors shadow-sm">Save Folder</button>
@@ -751,7 +763,20 @@
         /* --- Folder & Library Operations --- */
         
         function promptCreateFolder() {
+            document.getElementById('folderEditId').value = '';
             document.getElementById('folderNameInput').value = '';
+            document.getElementById('folderOrderInput').value = '';
+            document.getElementById('folder-modal-title').innerText = "Create New Folder";
+            document.getElementById('folder-modal').classList.remove('hidden');
+        }
+        
+        window.editFolder = function(id) {
+            const folder = allFolders.find(f => f.id === id);
+            if (!folder) return;
+            document.getElementById('folderEditId').value = folder.id;
+            document.getElementById('folderNameInput').value = folder.title || '';
+            document.getElementById('folderOrderInput').value = folder.order !== undefined && folder.order !== 999 ? folder.order : '';
+            document.getElementById('folder-modal-title').innerText = "Edit Folder";
             document.getElementById('folder-modal').classList.remove('hidden');
         }
 
@@ -760,25 +785,37 @@
         }
 
         async function saveFolder() {
+            const id = document.getElementById('folderEditId').value;
             const title = document.getElementById('folderNameInput').value.trim();
+            const order = document.getElementById('folderOrderInput').value;
             if(!title) return showToast("Folder name is required.", "error");
 
             try {
-                const res = await fetch(`${API_BASE_URL}/admin/test-folders`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({ title, parentId: currentFolderId })
-                });
+                let res;
+                if (id) {
+                    res = await fetch(`${API_BASE_URL}/admin/test-folders/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                        body: JSON.stringify({ title, order })
+                    });
+                } else {
+                    res = await fetch(`${API_BASE_URL}/admin/test-folders`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                        body: JSON.stringify({ title, order, parentId: currentFolderId })
+                    });
+                }
+                
                 await checkAuthResponse(res);
                 if(res.ok) {
-                    showToast("Folder created successfully.");
+                    showToast(id ? "Folder updated." : "Folder created.");
                     closeFolderModal();
                     await fetchLibrary();
                 } else {
-                    showToast("Failed to create folder.", "error");
+                    showToast("Failed to save folder.", "error");
                 }
             } catch(e) {
-                if (e.message !== "AUTH_FAILED") showToast("Network error creating folder.", "error");
+                if (e.message !== "AUTH_FAILED") showToast("Network error.", "error");
             }
         }
 
@@ -832,8 +869,14 @@
             }
             breadcrumbs.innerHTML = bcHtml;
 
-            // Filter for current directory
-            const currentFolders = allFolders.filter(f => (f.parentId || null) === currentFolderId);
+            // Filter for current directory and SORT folders natively
+            let currentFolders = allFolders.filter(f => (f.parentId || null) === currentFolderId);
+            currentFolders.sort((a, b) => {
+                const orderA = a.order !== undefined ? parseInt(a.order) : 999;
+                const orderB = b.order !== undefined ? parseInt(b.order) : 999;
+                return orderA - orderB;
+            });
+
             const currentTests = allTests.filter(t => (t.folderId || null) === currentFolderId);
 
             if(currentFolders.length === 0 && currentTests.length === 0) { 
@@ -851,13 +894,21 @@
                 grid.innerHTML += `
                     <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:border-brand-300 transition-all flex flex-col group cursor-pointer relative" onclick="navigateToFolder('${folder.id}')">
                         <div class="flex justify-between items-start mb-2">
-                            <div class="w-12 h-12 bg-brand-50 rounded-xl flex items-center justify-center text-brand-600 shadow-inner">
-                                <i class="fa-solid fa-folder-closed text-2xl group-hover:hidden"></i>
-                                <i class="fa-solid fa-folder-open text-2xl hidden group-hover:block transition-all transform scale-110"></i>
+                            <div class="flex items-center gap-2">
+                                <span class="text-[10px] bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded-sm font-bold">#${folder.order !== undefined && folder.order !== 999 ? folder.order : '-'}</span>
+                                <div class="w-10 h-10 bg-brand-50 rounded-xl flex items-center justify-center text-brand-600 shadow-inner">
+                                    <i class="fa-solid fa-folder-closed text-xl group-hover:hidden"></i>
+                                    <i class="fa-solid fa-folder-open text-xl hidden group-hover:block transition-all transform scale-110"></i>
+                                </div>
                             </div>
-                            <button onclick="event.stopPropagation(); promptDeleteFolder('${folder.id}')" class="text-slate-300 hover:text-red-500 w-8 h-8 rounded-full hover:bg-red-50 flex items-center justify-center transition" title="Delete Folder">
-                                <i class="fa-solid fa-trash-can"></i>
-                            </button>
+                            <div class="flex gap-1">
+                                <button onclick="event.stopPropagation(); editFolder('${folder.id}')" class="text-slate-300 hover:text-amber-500 w-8 h-8 rounded-full hover:bg-amber-50 flex items-center justify-center transition" title="Edit Folder">
+                                    <i class="fa-solid fa-pen text-xs"></i>
+                                </button>
+                                <button onclick="event.stopPropagation(); promptDeleteFolder('${folder.id}')" class="text-slate-300 hover:text-red-500 w-8 h-8 rounded-full hover:bg-red-50 flex items-center justify-center transition" title="Delete Folder">
+                                    <i class="fa-solid fa-trash-can text-xs"></i>
+                                </button>
+                            </div>
                         </div>
                         <h3 class="font-bold text-slate-800 text-lg mt-3 leading-tight truncate" title="${folder.title}">${folder.title}</h3>
                         <p class="text-xs font-semibold text-slate-500 mt-1">${nestedTestsCount} Assessments</p>
