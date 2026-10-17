@@ -1695,7 +1695,7 @@ app.get('/api/student/tests/history', authenticateToken, async (req, res) => {
 
 app.post('/api/admin/test-folders', authenticateToken, isAdmin, async (req, res) => {
     try {
-        const { id, title, parentId } = req.body;
+        const { id, title, parentId, order } = req.body;
         const folderId = id || uuidv4();
         const folderData = {
             id: folderId,
@@ -1703,14 +1703,14 @@ app.post('/api/admin/test-folders', authenticateToken, isAdmin, async (req, res)
             isFolder: true,
             status: 'folder', // Students look for 'published', so this strictly isolates it
             parentId: parentId || null,
+            order: order !== undefined && order !== '' ? parseInt(order) : 999,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()
         };
         await dynamoDB.put({ TableName: TABLE_TESTS, Item: folderData }).promise();
-        res.status(201).json({ message: 'Folder created', folderId });
-    } catch (error) { res.status(500).json({ error: 'Failed to create folder' }); }
+        res.status(201).json({ message: 'Folder saved', folderId });
+    } catch (error) { res.status(500).json({ error: 'Failed to save folder' }); }
 });
-
 app.delete('/api/admin/test-folders/:id', authenticateToken, isAdmin, async (req, res) => {
     try {
         const folderId = req.params.id;
@@ -1737,6 +1737,28 @@ app.delete('/api/admin/test-folders/:id', authenticateToken, isAdmin, async (req
         console.error("Folder deletion error:", error);
         res.status(500).json({ error: 'Folder deletion failed' }); 
     }
+});
+
+app.put('/api/admin/test-folders/:id', authenticateToken, isAdmin, async (req, res) => {
+    try {
+        const folderId = req.params.id;
+        const { title, order } = req.body;
+
+        const existing = await dynamoDB.get({ TableName: TABLE_TESTS, Key: { id: folderId } }).promise();
+        if (!existing.Item || !existing.Item.isFolder) {
+            return res.status(404).json({ error: 'Folder not found' });
+        }
+
+        const updatedFolder = {
+            ...existing.Item,
+            title: title || existing.Item.title,
+            order: order !== undefined && order !== '' ? parseInt(order) : existing.Item.order,
+            updatedAt: new Date().toISOString()
+        };
+
+        await dynamoDB.put({ TableName: TABLE_TESTS, Item: updatedFolder }).promise();
+        res.json({ message: 'Folder updated successfully.' });
+    } catch (error) { res.status(500).json({ error: 'Failed to update folder' }); }
 });
 
 /* ==========================================================================
@@ -2034,7 +2056,20 @@ app.delete('/api/admin/books/:id', authenticateToken, isAdmin, async (req, res) 
 app.get('/api/public/achievements', async (req, res) => {
     try {
         const result = await dynamoDB.scan({ TableName: TABLE_HOMEPAGE_COURSES }).promise();
-        let achievements = (result.Items || []).filter(item => item.itemType === 'achievement').sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        let achievements = (result.Items || []).filter(item => item.itemType === 'achievement');
+
+        // Sort by Category Order, then by Image Order, then by Date
+        achievements.sort((a, b) => {
+            const catOrderA = a.categoryOrder !== undefined ? parseInt(a.categoryOrder) : 9999;
+            const catOrderB = b.categoryOrder !== undefined ? parseInt(b.categoryOrder) : 9999;
+            if (catOrderA !== catOrderB) return catOrderA - catOrderB;
+
+            const orderA = a.order !== undefined ? parseInt(a.order) : 9999;
+            const orderB = b.order !== undefined ? parseInt(b.order) : 9999;
+            if (orderA !== orderB) return orderA - orderB;
+
+            return new Date(b.createdAt) - new Date(a.createdAt);
+        });
 
         const bucketPrefix = `https://${S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/`;
         achievements = await Promise.all(achievements.map(async (ach) => {
@@ -2082,9 +2117,11 @@ app.post('/api/admin/achievements/bulk', authenticateToken, isAdmin, async (req,
                 id: uuidv4(), 
                 itemType: 'achievement', 
                 category: ach.category || 'General', 
+                categoryOrder: ach.categoryOrder !== undefined ? parseInt(ach.categoryOrder) : 999,
                 title: ach.title || '', 
                 description: ach.description || '', 
                 imageUrl: ach.imageUrl, 
+                order: ach.order !== undefined ? parseInt(ach.order) : 999,
                 createdAt: new Date().toISOString() 
             };
             return dynamoDB.put({ TableName: TABLE_HOMEPAGE_COURSES, Item: newAch }).promise();
@@ -2096,6 +2133,36 @@ app.post('/api/admin/achievements/bulk', authenticateToken, isAdmin, async (req,
         console.error("Bulk upload error:", error);
         res.status(500).json({ error: 'Failed to add achievements in bulk.' }); 
     }
+});
+
+app.put('/api/admin/achievements/:id', authenticateToken, isAdmin, async (req, res) => {
+    try {
+        const { category, title, description, imageUrl, order, categoryOrder } = req.body;
+        const existing = await dynamoDB.get({ TableName: TABLE_HOMEPAGE_COURSES, Key: { id: req.params.id } }).promise();
+        if (!existing.Item || existing.Item.itemType !== 'achievement') return res.status(404).json({ error: 'Not found' });
+
+        // Clean up old image from S3 if a new one is provided
+        if (imageUrl && existing.Item.imageUrl && existing.Item.imageUrl !== imageUrl) {
+            const bucketPrefix = `https://${process.env.S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/`;
+            if (existing.Item.imageUrl.startsWith(bucketPrefix)) {
+                await deleteS3ObjectSafely(decodeURIComponent(existing.Item.imageUrl.replace(bucketPrefix, '')));
+            }
+        }
+
+        const updatedAchievement = { 
+            ...existing.Item, 
+            category: category || existing.Item.category,
+            categoryOrder: categoryOrder !== undefined ? parseInt(categoryOrder) : existing.Item.categoryOrder,
+            title: title !== undefined ? title : existing.Item.title,
+            description: description !== undefined ? description : existing.Item.description,
+            imageUrl: imageUrl || existing.Item.imageUrl,
+            order: order !== undefined ? parseInt(order) : existing.Item.order,
+            updatedAt: new Date().toISOString() 
+        };
+        
+        await dynamoDB.put({ TableName: TABLE_HOMEPAGE_COURSES, Item: updatedAchievement }).promise();
+        res.json({ message: 'Achievement updated successfully.' });
+    } catch (error) { res.status(500).json({ error: 'Failed to update achievement.' }); }
 });
 /* ==========================================================================
    FREE RESOURCES API (ADMIN MULTIPART UPLOADS)
@@ -2197,10 +2264,11 @@ app.post('/api/admin/free-resources/upload/complete', authenticateToken, isAdmin
     }
 });
 
+
 // 6. Save or Update File Metadata
 app.post('/api/admin/free-resources/file', authenticateToken, isAdmin, async (req, res) => {
     try {
-        const { id, folderId, title, resourceType, url, s3Key, size } = req.body;
+        const { id, folderId, title, resourceType, url, s3Key, size, order } = req.body;
         if (!folderId || !title || (!url && !id) || !resourceType) return res.status(400).json({ error: "Missing fields" });
 
         const fileId = id || uuidv4();
@@ -2233,6 +2301,7 @@ app.post('/api/admin/free-resources/file', authenticateToken, isAdmin, async (re
                 type: 'file',
                 folderId, title, resourceType, 
                 url: finalUrl, s3Key: finalS3Key, size: size || 0,
+                order: order !== undefined && order !== '' ? parseInt(order) : 999,
                 createdAt: createdAt, updatedAt: new Date().toISOString()
             }
         }).promise();
@@ -2274,11 +2343,21 @@ app.get('/api/public/free-resources-tree', async (req, res) => {
         const items = result.Items || [];
         const bucketPrefix = `https://${S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/`;
 
+        // Sort Folders by 'order' initially
         const folders = items.filter(i => i.type === 'folder').map(f => ({
-            id: f.id, name: f.name, items: []
-        }));
+            id: f.id, 
+            name: f.name, 
+            order: f.order !== undefined ? parseInt(f.order) : 999,
+            items: []
+        })).sort((a, b) => a.order - b.order);
 
-        const files = items.filter(i => i.type === 'file').sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+        // Sort Files by 'order'
+        const files = items.filter(i => i.type === 'file').sort((a, b) => {
+            const orderA = a.order !== undefined ? parseInt(a.order) : 999;
+            const orderB = b.order !== undefined ? parseInt(b.order) : 999;
+            if(orderA !== orderB) return orderA - orderB;
+            return a.createdAt.localeCompare(b.createdAt);
+        });
 
         for (const file of files) {
             const folder = folders.find(f => f.id === file.folderId);
@@ -2291,7 +2370,11 @@ app.get('/api/public/free-resources-tree', async (req, res) => {
                 }
 
                 folder.items.push({
-                    id: file.id, title: file.title, type: file.resourceType, url: secureUrl
+                    id: file.id, 
+                    title: file.title, 
+                    type: file.resourceType, 
+                    url: secureUrl,
+                    order: file.order !== undefined ? parseInt(file.order) : 999
                 });
             }
         }
@@ -2304,12 +2387,11 @@ app.get('/api/public/free-resources-tree', async (req, res) => {
 
 app.post('/api/admin/free-resources/folder', authenticateToken, isAdmin, async (req, res) => {
     try {
-        const { id, name } = req.body;
+        const { id, name, order } = req.body;
         if (!name) return res.status(400).json({ error: "Folder name is required" });
 
         const folderId = id || uuidv4();
         
-        // Use consistent timestamp handling
         let createdAt = new Date().toISOString();
         if (id) {
             const existing = await dynamoDB.get({ TableName: TABLE_HOMEPAGE_COURSES, Key: { id } }).promise();
@@ -2321,10 +2403,11 @@ app.post('/api/admin/free-resources/folder', authenticateToken, isAdmin, async (
         await dynamoDB.put({
             TableName: TABLE_HOMEPAGE_COURSES,
             Item: {
-                id: folderId, // Primary Key (Unique UUID)
+                id: folderId,
                 itemType: 'free_resource_folder',
                 type: 'folder',
                 name: name,
+                order: order !== undefined && order !== '' ? parseInt(order) : 999,
                 createdAt: createdAt,
                 updatedAt: new Date().toISOString()
             }
