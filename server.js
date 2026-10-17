@@ -2417,6 +2417,39 @@ app.post('/api/admin/free-resources/folder', authenticateToken, isAdmin, async (
         res.status(500).json({ error: "Could not save folder" });
     }
 });
+
+
+// Admin Change  Student level
+
+app.post('/api/admin/change-student-level', authenticateToken, isAdmin, async (req, res) => {
+    try {
+        const { email, newLevel } = req.body;
+        
+        if (!email || !newLevel) {
+            return res.status(400).json({ error: 'Email and new level are required.' });
+        }
+
+        // Optional: Check if user exists first to be safe
+        const userRes = await dynamoDB.get({ TableName: TABLE_USERS, Key: { email } }).promise();
+        if (!userRes.Item) {
+            return res.status(404).json({ error: 'User not found in the system.' });
+        }
+
+        // Update the student's level
+        await dynamoDB.update({
+            TableName: TABLE_USERS,
+            Key: { email },
+            UpdateExpression: 'set #lvl = :l',
+            ExpressionAttributeNames: { '#lvl': 'level' },
+            ExpressionAttributeValues: { ':l': newLevel }
+        }).promise();
+
+        res.json({ message: 'Student level updated successfully.' });
+    } catch (error) { 
+        console.error("Change student level error:", error);
+        res.status(500).json({ error: 'Failed to update student level.' }); 
+    }
+});
 /* ==========================================================================
    GLOBAL ERROR HANDLER
    ========================================================================== */
