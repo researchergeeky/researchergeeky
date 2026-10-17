@@ -84,7 +84,6 @@
             <a href="reports.html" class="nav-link"><i class="fa-solid fa-file-invoice w-5 text-center"></i> Reports</a>
             <a href="admin-homepage.html" class="nav-link"><i class="fa-solid fa-file-invoice w-5 text-center"></i> Home Page</a>
             <a href="free-resources-admin.html" class="nav-link"><i class="fa-solid fa-file-invoice w-5 text-center"></i> Free Resources</a>
-
         </nav>
         
         <div class="p-4 border-t border-slate-100">
@@ -252,6 +251,42 @@
         </div>
     </div>
 
+    <!-- Change Level Modal -->
+    <div id="change-level-modal" class="fixed inset-0 z-[60] hidden">
+        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onclick="closeChangeLevelModal()"></div>
+        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0 pointer-events-none">
+            <div class="relative bg-white rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:max-w-md w-full animate-fade-in pointer-events-auto">
+                <div class="bg-white px-6 pt-6 pb-6">
+                    <div class="sm:flex sm:items-start mb-4">
+                        <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-indigo-100 sm:mx-0 sm:h-10 sm:w-10">
+                            <i class="fa-solid fa-layer-group text-indigo-600"></i>
+                        </div>
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                            <h3 class="text-lg leading-6 font-semibold text-slate-900">Change Student Level</h3>
+                            <div class="mt-2">
+                                <p class="text-sm text-slate-500">Select a new level for <span id="change-level-target-email" class="font-bold text-slate-700"></span>.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-4 pl-0 sm:pl-14 w-full">
+                        <label class="block text-xs font-bold text-slate-700 mb-1">New Level</label>
+                        <select id="new-level-select" class="w-full text-sm border border-slate-300 rounded-lg bg-white focus:border-brand-500 focus:ring-2 focus:ring-brand-500 focus:outline-none transition-all px-3 py-2 cursor-pointer">
+                            <option value="">Loading levels...</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="bg-slate-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse border-t border-slate-100 gap-2">
+                    <button type="button" id="confirm-change-level-btn" class="w-full inline-flex justify-center rounded-lg border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none sm:w-auto sm:text-sm transition-colors">
+                        Update Level
+                    </button>
+                    <button type="button" onclick="closeChangeLevelModal()" class="mt-3 w-full inline-flex justify-center rounded-lg border border-slate-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-slate-700 hover:bg-slate-50 focus:outline-none sm:mt-0 sm:w-auto sm:text-sm transition-colors">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Notification Container -->
     <div id="toast-container" class="fixed top-4 right-4 z-[70] flex flex-col gap-2 pointer-events-none"></div>
 
@@ -261,9 +296,11 @@
         const user = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
         
         let allStudents = [];
+        let availableLevels = [];
         let studentToBlock = null;
         let studentToUnblock = null;
         let studentToExtend = null;
+        let studentToChangeLevel = null;
 
         if (!token || !user || user.role !== 'admin') { localStorage.clear(); window.location.href = '../login.html'; }
 
@@ -289,9 +326,22 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
+            loadLevels();
             loadDirectory();
             document.getElementById('searchInput').addEventListener('input', filterTable);
         });
+
+        async function loadLevels() {
+            try {
+                // Using the public endpoint to safely fetch the list of levels for the dropdown
+                const res = await fetch(`${API_BASE_URL}/public/levels`);
+                if(res.ok) {
+                    availableLevels = await res.json();
+                }
+            } catch(e) { 
+                console.error("Failed to load levels for the dropdown"); 
+            }
+        }
 
         async function loadDirectory() {
             const tbody = document.getElementById('directory-tbody');
@@ -343,10 +393,19 @@
 
                 let actionButton = '';
                 if (student.status === 'blocked') {
-                    actionButton = `<button onclick="promptUnblock('${student.email}')" class="text-emerald-600 bg-white hover:bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200 font-medium transition-colors text-xs shadow-sm flex items-center justify-center gap-1.5 ml-auto w-full max-w-[150px]"><i class="fa-solid fa-unlock-keyhole"></i> Unblock</button>`;
+                    actionButton = `
+                    <div class="flex items-center justify-end gap-2">
+                        <button onclick="promptChangeLevel('${student.email}', '${student.level}')" class="text-indigo-600 bg-white hover:bg-indigo-50 px-2.5 py-1.5 rounded-lg border border-indigo-200 font-medium transition-colors text-xs shadow-sm flex items-center gap-1.5" title="Change Level">
+                            <i class="fa-solid fa-layer-group"></i> Level
+                        </button>
+                        <button onclick="promptUnblock('${student.email}')" class="text-emerald-600 bg-white hover:bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200 font-medium transition-colors text-xs shadow-sm flex items-center justify-center gap-1.5"><i class="fa-solid fa-unlock-keyhole"></i> Unblock</button>
+                    </div>`;
                 } else if (student.status === 'approved' || student.status === 'expired' || student.status === 'pending_upgrade') {
                     actionButton = `
                     <div class="flex items-center justify-end gap-2">
+                        <button onclick="promptChangeLevel('${student.email}', '${student.level}')" class="text-indigo-600 bg-white hover:bg-indigo-50 px-2.5 py-1.5 rounded-lg border border-indigo-200 font-medium transition-colors text-xs shadow-sm flex items-center gap-1.5" title="Change Level">
+                            <i class="fa-solid fa-layer-group"></i> Level
+                        </button>
                         <button onclick="promptExtend('${student.email}', '${student.accessExpiresAt || ''}')" class="text-blue-600 bg-white hover:bg-blue-50 px-2.5 py-1.5 rounded-lg border border-blue-200 font-medium transition-colors text-xs shadow-sm flex items-center gap-1.5" title="Extend Duration">
                             <i class="fa-solid fa-calendar-plus"></i> Extend
                         </button>
@@ -456,7 +515,6 @@
             
             const dateInput = document.getElementById('new-expiry-date');
             
-            // Pre-fill the date input if they already have an expiry date
             if (currentExpiry && currentExpiry !== 'undefined' && currentExpiry !== 'null') {
                 const d = new Date(currentExpiry);
                 const yyyy = d.getFullYear();
@@ -509,6 +567,71 @@
             } catch(e) { 
                 showToast('Network error while processing request.', 'error'); 
                 closeExtendModal(); 
+            } finally { 
+                btn.innerHTML = originalText; 
+                btn.disabled = false; 
+            }
+        }
+
+        // === Action: Change Level ===
+        function promptChangeLevel(email, currentLevel) {
+            studentToChangeLevel = email;
+            document.getElementById('change-level-target-email').innerText = email;
+            
+            const select = document.getElementById('new-level-select');
+            select.innerHTML = '';
+            
+            if (availableLevels.length === 0) {
+                select.innerHTML = '<option value="">No levels available</option>';
+            } else {
+                availableLevels.forEach(lvl => {
+                    const isSelected = lvl.levelName === currentLevel ? 'selected' : '';
+                    select.innerHTML += `<option value="${lvl.levelName}" ${isSelected}>${lvl.levelName}</option>`;
+                });
+            }
+
+            document.getElementById('change-level-modal').classList.remove('hidden');
+            document.getElementById('confirm-change-level-btn').onclick = () => executeChangeLevel();
+        }
+
+        function closeChangeLevelModal() {
+            studentToChangeLevel = null;
+            document.getElementById('change-level-modal').classList.add('hidden');
+        }
+
+        async function executeChangeLevel() {
+            if(!studentToChangeLevel) return;
+            const email = studentToChangeLevel;
+            const newLevel = document.getElementById('new-level-select').value;
+            
+            if(!newLevel) { 
+                showToast('Please select a valid level.', 'error'); 
+                return; 
+            }
+
+            const btn = document.getElementById('confirm-change-level-btn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin gap-2"></i> Updating...`;
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/admin/change-student-level`, { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, 
+                    body: JSON.stringify({ email, newLevel }) 
+                });
+                
+                if(res.ok) { 
+                    showToast('Student level updated successfully.'); 
+                    closeChangeLevelModal(); 
+                    loadDirectory(); 
+                } else { 
+                    showToast('Failed to update level.', 'error'); 
+                    closeChangeLevelModal(); 
+                }
+            } catch(e) { 
+                showToast('Network error while processing request.', 'error'); 
+                closeChangeLevelModal(); 
             } finally { 
                 btn.innerHTML = originalText; 
                 btn.disabled = false; 
