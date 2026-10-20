@@ -49,6 +49,7 @@ const TABLE_SCORES = process.env.TABLE_SCORES || 'Geeky_TestScores';
 const TABLE_PROGRESS = process.env.TABLE_PROGRESS || 'Geeky_Progress'; 
 const TABLE_TOKENS = process.env.TABLE_TOKENS || 'Geeky_Tokens'; 
 const TABLE_HOMEPAGE_COURSES = process.env.TABLE_HOMEPAGE_COURSES || 'Geeky_HomepageCourses';
+const TABLE_FEEDBACK = process.env.TABLE_FEEDBACK || 'Geeky_Feedback';
 
 const SES_SOURCE_EMAIL = process.env.SES_SOURCE_EMAIL || 'admin@geekyresearcher.com';
 const S3_BUCKET = process.env.S3_BUCKET_NAME || 'geeky-researcher-assets';
@@ -2450,6 +2451,74 @@ app.post('/api/admin/change-student-level', authenticateToken, isAdmin, async (r
         res.status(500).json({ error: 'Failed to update student level.' }); 
     }
 });
+
+app.post('/api/student/feedback', authenticateToken, async (req, res) => {
+    try {
+        const { email, name, level } = req.user;
+        const { rating, contentQuality, assessmentsFeedback, detailedReview } = req.body;
+
+        if (!detailedReview || detailedReview.trim().length < 10) {
+            return res.status(400).json({ error: 'Please provide a more detailed review to help us improve.' });
+        }
+
+        const feedbackData = {
+            email, // Primary Key
+            name,
+            level,
+            rating: rating || '5',
+            contentQuality: contentQuality || 'Excellent',
+            assessmentsFeedback: assessmentsFeedback || 'Helpful',
+            detailedReview: detailedReview.trim(),
+            status: 'approved', // Auto-approving for immediate display on index.html as requested
+            updatedAt: new Date().toISOString()
+        };
+
+        // Check if it's their first time submitting to set createdAt
+        const existing = await dynamoDB.get({ TableName: TABLE_FEEDBACK, Key: { email } }).promise();
+        if (!existing.Item) {
+            feedbackData.createdAt = new Date().toISOString();
+        } else {
+            feedbackData.createdAt = existing.Item.createdAt || new Date().toISOString();
+        }
+
+        await dynamoDB.put({ TableName: TABLE_FEEDBACK, Item: feedbackData }).promise();
+        res.status(200).json({ message: 'Feedback submitted successfully!' });
+    } catch (error) {
+        console.error("Feedback Submission Error:", error);
+        res.status(500).json({ error: 'Failed to submit feedback.' });
+    }
+});
+
+// 2. Get My Feedback (Student - to populate edit form)
+app.get('/api/student/feedback/me', authenticateToken, async (req, res) => {
+    try {
+        const { email } = req.user;
+        const result = await dynamoDB.get({ TableName: TABLE_FEEDBACK, Key: { email } }).promise();
+        res.json(result.Item || {});
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch your feedback.' });
+    }
+});
+
+// 3. Get All Approved Feedback (Public - for index.html)
+app.get('/api/public/feedback', async (req, res) => {
+    try {
+        const result = await dynamoDB.scan({
+            TableName: TABLE_FEEDBACK,
+            FilterExpression: '#st = :status',
+            ExpressionAttributeNames: { '#st': 'status' },
+            ExpressionAttributeValues: { ':status': 'approved' }
+        }).promise();
+
+        // Sort by newest first
+        const feedbacks = (result.Items || []).sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+        res.json(feedbacks);
+    } catch (error) {
+        console.error("Public Feedback Fetch Error:", error);
+        res.status(500).json({ error: 'Failed to fetch public feedback.' });
+    }
+});
+
 /* ==========================================================================
    GLOBAL ERROR HANDLER
    ========================================================================== */
