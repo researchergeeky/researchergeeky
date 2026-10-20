@@ -224,6 +224,13 @@
                     <input type="text" placeholder="Search modules..." class="bg-transparent border-none outline-none text-[14px] ml-2 w-full text-surface-700 placeholder:text-surface-400 font-medium">
                 </div>
                 
+                <!-- Feedback Button (Placed right after search bar for clear visibility) -->
+                <button onclick="openFeedbackModal()" class="w-10 h-10 flex items-center justify-center text-brand-600 hover:text-white hover:bg-brand-500 bg-brand-50 border border-brand-100 rounded-full shadow-sm transition-all relative group" title="Give Feedback">
+                    <i class="fa-solid fa-comment-dots text-[15px]"></i>
+                    <!-- Tooltip -->
+                    <span class="absolute top-12 -right-2 bg-surface-900 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none hidden md:block shadow-float">Platform Feedback</span>
+                </button>
+
                 <!-- Notification -->
                 <button class="w-10 h-10 flex items-center justify-center text-surface-600 hover:text-surface-900 bg-white border border-surface-200 rounded-full shadow-sm transition-all hover:shadow relative">
                     <i class="fa-regular fa-bell text-[16px]"></i>
@@ -378,7 +385,7 @@
                     <h3 class="font-bold text-surface-900 text-[18px]">Upgrade License</h3>
                     <p class="text-surface-500 text-[13px] font-medium">Unlock full platform access</p>
                 </div>
-                <button onclick="closeUpgradeModal()" class="w-8 h-8 rounded-full bg-surface-100 flex items-center justify-center text-surface-500 hover:text-surface-900 hover:bg-surface-200 transition-colors">
+                <button type="button" onclick="closeUpgradeModal()" class="w-8 h-8 rounded-full bg-surface-100 flex items-center justify-center text-surface-500 hover:text-surface-900 hover:bg-surface-200 transition-colors z-50 relative">
                     <i class="fa-solid fa-times text-[14px]"></i>
                 </button>
             </div>
@@ -404,6 +411,93 @@
                 
                 <button onclick="submitUpgrade()" id="submitUpgradeBtn" class="w-full bg-surface-900 hover:bg-black text-white font-bold py-4 rounded-2xl transition-all flex justify-center items-center gap-2 text-[15px] shadow-md hover:shadow-lg active:scale-[0.98]">
                     Verify Transaction <i class="fa-solid fa-arrow-right ml-1"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Student Feedback Modal -->
+    <div id="feedbackModal" class="fixed inset-0 z-[100] modal-overlay hidden flex items-end md:items-center justify-center opacity-0 transition-opacity duration-300">
+        <div class="absolute inset-0 z-0 md:hidden" onclick="closeFeedbackModal()"></div>
+        
+        <div class="bg-white w-full md:w-auto md:min-w-[500px] md:max-w-xl rounded-t-3xl md:rounded-3xl shadow-float border-t md:border border-surface-200 overflow-hidden mobile-bottom-sheet relative z-10 flex flex-col max-h-[90vh]" id="feedbackModalContent">
+            
+            <!-- Mobile pull indicator -->
+            <div class="w-full flex justify-center pt-3 pb-1 md:hidden">
+                <div class="w-12 h-1.5 bg-surface-200 rounded-full"></div>
+            </div>
+
+            <!-- Fixed Header with high z-index Close Button -->
+            <div class="flex justify-between items-center px-6 py-4 md:py-6 border-b border-surface-100 bg-brand-50/30 relative z-20">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-brand-100 flex items-center justify-center text-brand-600">
+                        <i class="fa-solid fa-comment-dots text-lg"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-surface-900 text-[18px]">Platform Feedback</h3>
+                        <p class="text-surface-500 text-[13px] font-medium">Your reviews help us grow!</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeFeedbackModal()" class="w-8 h-8 rounded-full bg-white flex items-center justify-center text-surface-500 hover:text-rose-500 hover:bg-rose-50 border border-surface-200 shadow-sm transition-all z-50 cursor-pointer">
+                    <i class="fa-solid fa-times text-[14px]"></i>
+                </button>
+            </div>
+
+            <!-- Scrollable Body with LMS specific Questions -->
+            <div class="p-6 md:p-8 overflow-y-auto space-y-5 relative z-10">
+                <div>
+                    <label class="block text-[13px] font-bold text-surface-700 uppercase tracking-wide mb-2">Overall Platform Rating</label>
+                    <select id="fb-rating" class="w-full bg-surface-50 border border-surface-200 text-surface-900 text-sm rounded-xl focus:ring-brand-500 focus:border-brand-500 block p-3 outline-none transition-colors font-medium">
+                        <option value="5">⭐⭐⭐⭐⭐ Outstanding (5/5)</option>
+                        <option value="4">⭐⭐⭐⭐ Very Good (4/5)</option>
+                        <option value="3">⭐⭐⭐ Average (3/5)</option>
+                        <option value="2">⭐⭐ Needs Improvement (2/5)</option>
+                        <option value="1">⭐ Poor (1/5)</option>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[13px] font-bold text-surface-700 uppercase tracking-wide mb-2">Video Lectures Quality</label>
+                        <select id="fb-content" class="w-full bg-surface-50 border border-surface-200 text-surface-900 text-sm rounded-xl focus:ring-brand-500 focus:border-brand-500 block p-3 outline-none transition-colors font-medium">
+                            <option value="Excellent">Excellent & Clear</option>
+                            <option value="Good">Good Concept Delivery</option>
+                            <option value="Average">Average</option>
+                            <option value="Needs Improvement">Needs Improvement</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[13px] font-bold text-surface-700 uppercase tracking-wide mb-2">Tests & Assessments</label>
+                        <select id="fb-assessments" class="w-full bg-surface-50 border border-surface-200 text-surface-900 text-sm rounded-xl focus:ring-brand-500 focus:border-brand-500 block p-3 outline-none transition-colors font-medium">
+                            <option value="Highly Relevant">Highly Relevant</option>
+                            <option value="Helpful Practice">Helpful Practice</option>
+                            <option value="Too Difficult">Too Difficult</option>
+                            <option value="Too Easy">Too Easy</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-[13px] font-bold text-surface-700 uppercase tracking-wide mb-2">Platform Experience (UI)</label>
+                    <select id="fb-ui" class="w-full bg-surface-50 border border-surface-200 text-surface-900 text-sm rounded-xl focus:ring-brand-500 focus:border-brand-500 block p-3 outline-none transition-colors font-medium">
+                        <option value="Smooth & Easy to use">Smooth & Easy to use</option>
+                        <option value="Good but can be improved">Good but can be improved</option>
+                        <option value="Confusing Navigation">Confusing Navigation</option>
+                        <option value="Slow Performance">Slow Performance</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-[13px] font-bold text-surface-700 uppercase tracking-wide mb-1">Detailed Review <span class="text-rose-500">*</span></label>
+                    <p class="text-[11px] text-surface-500 mb-2 font-medium leading-relaxed">
+                        Please share your experience to help future scholars understand the platform's value. 
+                        How has the teaching approach helped your exam preparation?
+                    </p>
+                    <textarea id="fb-review" rows="5" placeholder="Write your comprehensive feedback here..." class="w-full bg-surface-50 border border-surface-200 text-surface-900 text-[14px] rounded-xl focus:ring-brand-500 focus:border-brand-500 block p-3 outline-none transition-colors resize-none font-medium shadow-soft-inner"></textarea>
+                </div>
+
+                <button onclick="submitFeedback()" id="submitFeedbackBtn" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-4 rounded-2xl transition-all flex justify-center items-center gap-2 text-[15px] shadow-md hover:shadow-lg active:scale-[0.98] mt-2">
+                    Submit Testimonial <i class="fa-solid fa-paper-plane ml-1"></i>
                 </button>
             </div>
         </div>
@@ -569,6 +663,7 @@
             }
         }
 
+        // --- UPGRADE MODAL LOGIC ---
         function openUpgradeModal() {
             if(!globalLevelDetails) return showToast("Retrieving secure fee details...", "info");
             
@@ -614,9 +709,7 @@
                 content.classList.add('scale-95');
             }
             
-            setTimeout(() => {
-                modal.classList.add('hidden');
-            }, 300);
+            setTimeout(() => { modal.classList.add('hidden'); }, 300);
         }
 
         async function submitUpgrade() {
@@ -637,6 +730,92 @@
             } catch(e) { showToast("Network communication error.", "error"); } 
             finally {
                 btn.innerHTML = 'Verify Transaction <i class="fa-solid fa-arrow-right ml-1"></i>';
+                btn.disabled = false;
+            }
+        }
+
+        // --- FEEDBACK MODAL LOGIC ---
+        async function openFeedbackModal() {
+            // Pre-fetch if they have already submitted
+            try {
+                const res = await fetch(`${API_BASE_URL}/student/feedback/me`, { headers: { 'Authorization': `Bearer ${token}` } });
+                if(res.ok) {
+                    const data = await res.json();
+                    if(data && data.detailedReview) {
+                        document.getElementById('fb-rating').value = data.rating || '5';
+                        document.getElementById('fb-content').value = data.contentQuality || 'Excellent';
+                        document.getElementById('fb-assessments').value = data.assessmentsFeedback || 'Highly Relevant';
+                        document.getElementById('fb-ui').value = data.platformUi || 'Smooth & Easy to use';
+                        document.getElementById('fb-review').value = data.detailedReview || '';
+                        
+                        document.getElementById('submitFeedbackBtn').innerHTML = 'Update Testimonial <i class="fa-solid fa-paper-plane ml-1"></i>';
+                    }
+                }
+            } catch(e) { console.error("Could not load past feedback"); }
+            
+            const modal = document.getElementById('feedbackModal');
+            const content = document.getElementById('feedbackModalContent');
+            
+            modal.classList.remove('hidden');
+            void modal.offsetWidth; // Force reflow
+            modal.classList.remove('opacity-0');
+            
+            if(window.innerWidth <= 768) {
+                content.classList.add('show');
+            } else {
+                content.classList.remove('scale-95');
+                content.classList.add('scale-100', 'animate-scale-in');
+            }
+        }
+
+        function closeFeedbackModal() {
+            const modal = document.getElementById('feedbackModal');
+            const content = document.getElementById('feedbackModalContent');
+            
+            modal.classList.add('opacity-0');
+            if(window.innerWidth <= 768) {
+                content.classList.remove('show');
+            } else {
+                content.classList.remove('scale-100', 'animate-scale-in');
+                content.classList.add('scale-95');
+            }
+            setTimeout(() => { modal.classList.add('hidden'); }, 300);
+        }
+
+        async function submitFeedback() {
+            const rating = document.getElementById('fb-rating').value;
+            const contentQuality = document.getElementById('fb-content').value;
+            const assessmentsFeedback = document.getElementById('fb-assessments').value;
+            const platformUi = document.getElementById('fb-ui').value;
+            const detailedReview = document.getElementById('fb-review').value;
+
+            if (!detailedReview || detailedReview.trim().length < 15) {
+                return showToast("Please write a detailed review (at least 15 characters).", "info");
+            }
+
+            const btn = document.getElementById('submitFeedbackBtn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Submitting...';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/student/feedback`, { 
+                    method: 'POST', 
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ rating, contentQuality, assessmentsFeedback, platformUi, detailedReview })
+                });
+                
+                if(res.ok) {
+                    closeFeedbackModal();
+                    showToast("Thank you! Your feedback has been updated and published.", "success");
+                } else {
+                    const data = await res.json();
+                    showToast(data.error || "Failed to submit feedback.", "error");
+                }
+            } catch(e) { 
+                showToast("Network communication error.", "error"); 
+            } finally {
+                btn.innerHTML = originalText;
                 btn.disabled = false;
             }
         }
