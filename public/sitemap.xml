@@ -1,25 +1,35 @@
+<!-- STREAMING_CHUNK:Adding Homepage priority -->
+<!-- Main Homepage - Highest Priority -->
+<url>
+    <loc>https://geekyresearcher.com/</loc>
+    <lastmod>2026-10-20T00:00:00+00:00</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+</url>
 
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<!-- STREAMING_CHUNK:Adding Free Resources page -->
+<!-- Free Resources Page -->
+<url>
+    <loc>https://geekyresearcher.com/freeresource.html</loc>
+    <lastmod>2026-10-20T00:00:00+00:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+</url>
 
-    <!-- Main public landing page -->
-    <url>
-        <loc>https://app.geekyresearcher.com/</loc>
-    </url>
+<!-- STREAMING_CHUNK:Adding Registration page -->
+<!-- Registration / Enrollment Page -->
+<url>
+    <loc>https://geekyresearcher.com/register.html</loc>
+    <lastmod>2026-10-20T00:00:00+00:00</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+</url>
 
-    <!-- Plant Pathology learning chapters -->
-    <url>
-        <loc>https://app.geekyresearcher.com/chapters.html</loc>
-    </url>
-
-    <!-- Public free learning resources -->
-    <url>
-        <loc>https://app.geekyresearcher.com/freeresource.html</loc>
-    </url>
-
-    <!-- Public terms and conditions -->
-    <url>
-        <loc>https://app.geekyresearcher.com/terms_conditions.html</loc>
-    </url>
-
-</urlset>
+<!-- STREAMING_CHUNK:Adding Login page -->
+<!-- Login Page -->
+<url>
+    <loc>https://geekyresearcher.com/login.html</loc>
+    <lastmod>2026-10-20T00:00:00+00:00</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+</url>
