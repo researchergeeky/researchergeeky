@@ -1,0 +1,25 @@
+
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+    <!-- Main public landing page -->
+    <url>
+        <loc>https://app.geekyresearcher.com/</loc>
+    </url>
+
+    <!-- Plant Pathology learning chapters -->
+    <url>
+        <loc>https://app.geekyresearcher.com/chapters.html</loc>
+    </url>
+
+    <!-- Public free learning resources -->
+    <url>
+        <loc>https://app.geekyresearcher.com/freeresource.html</loc>
+    </url>
+
+    <!-- Public terms and conditions -->
+    <url>
+        <loc>https://app.geekyresearcher.com/terms_conditions.html</loc>
+    </url>
+
+</urlset>
