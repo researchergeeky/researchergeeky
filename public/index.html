@@ -5,11 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Geeky Researcher | Premium Plant Pathology Platform</title>
     <meta name="description" content="One Subject. One Platform. Plant Pathology. A focused learning ecosystem for ASRB-NET, ARS, SMS, STO, SAUs, JRF, SRF, and Ph.D.">
-    
-    
+        <link rel="icon" type="image/png" href="https://res.cloudinary.com/dzuxwvamy/image/upload/v1791733103/WhatsApp_Image_2026-10-11_at_12.57.36_PM_wl6n9r.jpg">
+
 <!-- Primary SEO Metadata -->
 <title>Plant Pathology Online Courses & ASRB NET Preparation | Geeky Researcher</title>
 <meta name="description" content="Prepare for ASRB-NET, ARS, JRF, SRF and Ph.D. with Geeky Researcher's Plant Pathology courses, recorded lectures, practice tests, model exams and study resources.">
+<meta name="image" content="https://res.cloudinary.com/dzuxwvamy/image/upload/v1791733103/WhatsApp_Image_2026-10-11_at_12.57.36_PM_wl6n9r.jpg">
 
 <meta name="robots" content="index, follow, max-image-preview:large">
 <meta name="googlebot" content="index, follow">
@@ -797,12 +798,14 @@
         .faculty-qual { font-size: 0.85rem; color: var(--text-muted); font-style: italic; }
 
         .exam-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
             gap: 32px;
             margin-bottom: 64px;
         }
         .exam-card {
+            flex: 0 1 260px;
             background: rgba(255,255,255,0.03);
             border: 1px solid rgba(255,255,255,0.15);
             padding: 48px 32px;
@@ -811,6 +814,7 @@
             transition: var(--transition);
             position: relative;
             overflow: hidden;
+            width: 100%;
         }
         .exam-card::after {
             content: '';
@@ -886,6 +890,21 @@
         .book-cover img { max-height: 100%; max-width: 100%; object-fit: contain; }
         .book-card h4 { font-size: 1.05rem; font-family: var(--font-sans); color: var(--text-charcoal); line-height: 1.5; font-weight: 600; }
 
+        /* General Scroller Utilities */
+        .scroller-container {
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 32px;
+            overflow-x: auto;
+            padding: 16px 4px 40px;
+            scroll-snap-type: x mandatory;
+            scrollbar-width: thin; 
+            scroll-behavior: smooth;
+        }
+        .scroller-container::-webkit-scrollbar { height: 8px; }
+        .scroller-container::-webkit-scrollbar-track { background: var(--border-light); border-radius: 4px; }
+        .scroller-container::-webkit-scrollbar-thumb { background: var(--gold-accent); border-radius: 4px; }
+
         .achievements-tabs {
             display: flex;
             justify-content: center;
@@ -952,6 +971,61 @@
         }
         .achievement-overlay h4 { color: var(--white); font-size: 1.4rem; margin-bottom: 6px; }
         .achievement-overlay p { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--gold-light); font-weight: 600; }
+
+        /* Student Feedback Card */
+        .feedback-card {
+            flex: 0 0 450px;
+            max-width: 85vw;
+            scroll-snap-align: center;
+            background: var(--white);
+            padding: 40px;
+            border: 1px solid var(--border-light);
+            border-top: 4px solid var(--gold-accent);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+            display: flex;
+            flex-direction: column;
+            border-radius: 4px;
+            transition: var(--transition);
+        }
+        .feedback-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 16px 32px rgba(0,0,0,0.08);
+            border-color: var(--gold-accent);
+        }
+        .feedback-rating {
+            color: #f59e0b;
+            font-size: 1.2rem;
+            margin-bottom: 16px;
+            letter-spacing: 2px;
+        }
+        .feedback-text {
+            font-size: 1.05rem;
+            color: var(--text-muted);
+            line-height: 1.7;
+            margin-bottom: 24px;
+            font-style: italic;
+            flex-grow: 1;
+        }
+        .feedback-author {
+            display: flex;
+            flex-direction: column;
+            border-top: 1px solid var(--border-light);
+            padding-top: 20px;
+        }
+        .feedback-author-name {
+            font-family: var(--font-sans);
+            font-weight: 700;
+            color: var(--forest-green);
+            font-size: 1.1rem;
+        }
+        .feedback-level {
+            font-size: 0.75rem;
+            color: var(--gold-accent);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+            margin-top: 4px;
+        }
 
         .promise-card {
             max-width: 900px;
@@ -1191,7 +1265,7 @@
             }
 
             .hero-title { font-size: 3.1rem; }
-            .ecosystem-grid, .courses-grid, .exam-grid, .books-grid, .syllabus-modal-grid { grid-template-columns: repeat(2, 1fr); }
+            .ecosystem-grid, .courses-grid, .books-grid, .syllabus-modal-grid { grid-template-columns: repeat(2, 1fr); }
             .about-grid { grid-template-columns: 1fr; gap: 56px; }
             .faculty-grid { position: static; }
             .overview-columns { grid-template-columns: 1fr; gap: 32px; }
@@ -1209,7 +1283,7 @@
             
             .stats-container { justify-content: flex-start; }
             
-            .ecosystem-grid, .courses-grid, .faculty-grid, .exam-grid, .books-grid, .syllabus-modal-grid { grid-template-columns: 1fr; }
+            .ecosystem-grid, .courses-grid, .faculty-grid, .books-grid, .syllabus-modal-grid { grid-template-columns: 1fr; }
             .resources-layout { grid-template-columns: 1fr; gap: 64px; }
             .footer-grid { grid-template-columns: 1fr; gap: 56px; }
             .platform-overview-box { padding: 32px 24px; }
@@ -1240,6 +1314,7 @@
                 <a href="#syllabus">Syllabus</a>
                 <a href="#resources">Resources</a>
                 <a href="#achievements">Achievements</a>
+                <a href="#student-feedback">Feedback</a>
                 <a href="#contact">Contact</a>
             </nav>
 
@@ -1260,6 +1335,7 @@
             <a href="#syllabus">Syllabus</a>
             <a href="#resources">Resources</a>
             <a href="#achievements">Achievements</a>
+            <a href="#student-feedback">Feedback</a>
             <a href="#contact">Contact</a>
             <div style="display: flex; gap: 12px; margin-top: 8px;">
                 <a href="login.html" class="btn btn-outline" style="flex: 1; text-align: center;">Login</a>
@@ -1622,7 +1698,23 @@
         </div>
     </section>
 
-    <section class="section section-light" id="achievements">
+    <!-- NEW STUDENT FEEDBACK SECTION -->
+    <section class="section section-light" id="student-feedback">
+        <div class="container" style="max-width: 1400px;">
+            <div class="section-header reveal">
+                <span class="eyebrow">Community Voices</span>
+                <h2>What Our Scholars Say</h2>
+                <p>Real feedback from students leveraging our ecosystem for competitive excellence.</p>
+            </div>
+
+            <!-- Dynamic Target for Scrolling Feedback -->
+            <div id="dynamic-feedback-container" class="scroller-container reveal">
+                <div style="text-align: center; color: var(--text-muted); padding: 40px; width: 100%;">Loading student feedback...</div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section section-light" id="achievements" style="padding-top: 0;">
         <div class="container" style="max-width: 1400px;">
             <div class="section-header reveal">
                 <span class="eyebrow">Wall of Fame 2025</span>
@@ -1745,6 +1837,15 @@
         </div>
     </div>
 
+    <!-- Image Lightbox Modal for Achievements -->
+    <div id="image-lightbox" class="modal-overlay" onclick="closeLightbox(event)" style="z-index: 3000; background: rgba(15, 23, 42, 0.95);">
+        <div class="relative max-w-5xl w-full mx-4 flex flex-col items-center" style="transform: translateY(0) scale(1);">
+            <button onclick="closeLightbox(event, true)" aria-label="Close Fullscreen Image" style="position: absolute; top: -40px; right: 0; font-size: 2.5rem; color: #fff; background: none; border: none; cursor: pointer; line-height: 1;">&times;</button>
+            <img id="lightbox-img" src="" alt="Achievement Full View" style="max-height: 80vh; max-width: 100%; border: 3px solid var(--gold-accent); border-radius: 4px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
+            <div id="lightbox-caption" style="color: #fff; margin-top: 16px; font-size: 1.25rem; font-family: var(--font-editorial); letter-spacing: 1px;"></div>
+        </div>
+    </div>
+
     <script>
         // API Configuration (Preserved)
         const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:';
@@ -1800,6 +1901,7 @@
             fetchDynamicCourses();
             fetchDynamicSyllabus();
             fetchDynamicAchievements();
+            fetchDynamicFeedback(); // NEW
             fetchFullSyllabusPdf();
             fetchDynamicBooks(); 
         });
@@ -1812,6 +1914,44 @@
                 const btn = document.getElementById('full-syllabus-btn');
                 if(data && data.url) { btn.href = data.url; btn.style.display = 'inline-flex'; }
             } catch (e) { console.log('Syllabus PDF API unavailable or returning no data.'); }
+        }
+
+        // --- NEW: STUDENT FEEDBACK FETCH ---
+        async function fetchDynamicFeedback() {
+            const container = document.getElementById('dynamic-feedback-container');
+            try {
+                const res = await fetch(`${API_BASE_URL}/public/feedback`);
+                if(!res.ok) throw new Error();
+                const feedbacks = await res.json();
+
+                if(feedbacks.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 40px; width:100%;">Community feedback will be available soon.</p>'; 
+                    return;
+                }
+
+                let html = '';
+                feedbacks.forEach(fb => {
+                    const stars = parseInt(fb.rating) || 5;
+                    const starDisplay = '★'.repeat(stars) + '☆'.repeat(5 - stars);
+
+                    html += `
+                        <div class="feedback-card">
+                            <div class="feedback-rating">${starDisplay}</div>
+                            <p class="feedback-text">"${escapeHtml(fb.detailedReview)}"</p>
+                            <div class="feedback-author">
+                                <span class="feedback-author-name">${escapeHtml(fb.name)}</span>
+                                <span class="feedback-level">Scholar · ${escapeHtml(fb.level)}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                container.innerHTML = html;
+                initAutoScroller(container);
+
+            } catch (e) {
+                container.innerHTML = '<p style="text-align: center; color: #d9534f; padding: 40px; width:100%;">Failed to load feedback data.</p>'; 
+            }
         }
 
         async function fetchDynamicAchievements() {
@@ -1849,7 +1989,7 @@
                     const isHidden = cat === firstCat ? '' : 'hidden';
                     const itemsHtml = grouped[cat].map(ach => {
                         return `
-                            <div class="achievement-card">
+                            <div class="achievement-card cursor-pointer" onclick="openLightbox('${escapeHtml(ach.imageUrl)}', '${escapeHtml(ach.title || '')}')" style="cursor: zoom-in;">
                                 <img src="${escapeHtml(ach.imageUrl)}" alt="${escapeHtml(ach.title || 'Student')}">
                                 <div class="achievement-overlay">
                                     ${ach.title ? `<h4>${escapeHtml(ach.title)}</h4>` : ''}
@@ -1859,7 +1999,7 @@
                         `;
                     }).join('');
                     
-                    contentHtml += `<div id="ach-tab-${safeId}" class="ach-tab-content ${isHidden} achievements-scroller">${itemsHtml}</div>`;
+                    contentHtml += `<div id="ach-tab-${safeId}" class="ach-tab-content ${isHidden} achievements-scroller scroller-container">${itemsHtml}</div>`;
                 });
                 contentHtml += `</div>`;
 
@@ -1868,39 +2008,36 @@
 
                 // Initialize Auto-Scroll logic
                 const allScrollers = document.querySelectorAll('.achievements-scroller');
-                
-                allScrollers.forEach(scroller => {
-                    scroller.addEventListener('mouseenter', () => scroller.dataset.paused = 'true');
-                    scroller.addEventListener('mouseleave', () => scroller.dataset.paused = 'false');
-                    scroller.addEventListener('touchstart', () => scroller.dataset.paused = 'true', {passive: true});
-                    scroller.addEventListener('touchend', () => { 
-                        setTimeout(() => scroller.dataset.paused = 'false', 1500); 
-                    }, {passive: true});
-                });
-
-                if(window.autoScrollInterval) clearInterval(window.autoScrollInterval);
-                
-                window.autoScrollInterval = setInterval(() => {
-                    const activeScroller = document.querySelector('.achievements-scroller:not(.hidden)');
-                    
-                    if (!activeScroller || activeScroller.dataset.paused === 'true') return;
-
-                    const card = activeScroller.querySelector('.achievement-card');
-                    if (!card) return;
-
-                    const maxScroll = activeScroller.scrollWidth - activeScroller.clientWidth;
-                    const scrollAmount = card.offsetWidth + 32;
-
-                    if (activeScroller.scrollLeft >= maxScroll - 10) {
-                        activeScroller.scrollTo({ left: 0, behavior: 'smooth' });
-                    } else {
-                        activeScroller.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-                    }
-                }, 3500);
+                allScrollers.forEach(initAutoScroller);
 
             } catch(e) { 
                 container.innerHTML = '<p style="text-align: center; color: #d9534f; padding: 40px;">Failed to load achievements data.</p>'; 
             }
+        }
+
+        function initAutoScroller(scroller) {
+            scroller.addEventListener('mouseenter', () => scroller.dataset.paused = 'true');
+            scroller.addEventListener('mouseleave', () => scroller.dataset.paused = 'false');
+            scroller.addEventListener('touchstart', () => scroller.dataset.paused = 'true', {passive: true});
+            scroller.addEventListener('touchend', () => { 
+                setTimeout(() => scroller.dataset.paused = 'false', 1500); 
+            }, {passive: true});
+
+            setInterval(() => {
+                if (scroller.dataset.paused === 'true' || scroller.classList.contains('hidden')) return;
+
+                const firstChild = scroller.firstElementChild;
+                if (!firstChild) return;
+
+                const maxScroll = scroller.scrollWidth - scroller.clientWidth;
+                const scrollAmount = firstChild.offsetWidth + 32;
+
+                if (scroller.scrollLeft >= maxScroll - 10) {
+                    scroller.scrollTo({ left: 0, behavior: 'smooth' });
+                } else {
+                    scroller.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+                }
+            }, 3500); // 3.5 seconds per scroll
         }
 
         window.showAchievementTab = function(tabId, btnElement) {
@@ -1910,6 +2047,28 @@
             const targetTab = document.getElementById(`ach-tab-${tabId}`);
             if(targetTab) targetTab.classList.remove('hidden');
             if(btnElement) btnElement.classList.add('active');
+        };
+
+        window.openLightbox = function(imgUrl, caption) {
+            const lightbox = document.getElementById('image-lightbox');
+            document.getElementById('lightbox-img').src = imgUrl;
+            document.getElementById('lightbox-caption').innerText = caption;
+            lightbox.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            
+            // Pause all auto-scrollers when modal is open
+            document.querySelectorAll('.achievements-scroller').forEach(s => s.dataset.paused = 'true');
+        };
+
+        window.closeLightbox = function(e, force = false) {
+            if (force || e.target.id === 'image-lightbox') {
+                const lightbox = document.getElementById('image-lightbox');
+                lightbox.classList.remove('active');
+                document.body.style.overflow = '';
+                
+                // Resume scrollers
+                document.querySelectorAll('.achievements-scroller').forEach(s => s.dataset.paused = 'false');
+            }
         };
 
         async function fetchDynamicCourses() {
