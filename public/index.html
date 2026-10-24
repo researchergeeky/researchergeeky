@@ -275,6 +275,16 @@
             background-color: var(--forest-green);
             color: var(--white);
         }
+        
+        .btn-outline-white {
+            background-color: var(--white);
+            color: var(--forest-green);
+            border: 1px solid var(--border-dark);
+        }
+        .btn-outline-white:hover {
+            background-color: var(--bg-offwhite);
+            border-color: var(--forest-green);
+        }
 
         .icon {
             width: 20px;
@@ -685,18 +695,23 @@
             color: var(--white);
         }
         
+        /* UNIFORM BOX SIZING FIXES FOR COURSE CARDS */
         .courses-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 40px;
+            align-items: stretch; /* Ensures all cards in a row stretch to the height of the tallest */
         }
         .course-card {
             background: var(--white);
             border: 1px solid var(--border-light);
             display: flex;
-            flex-direction: column;
+            flex-direction: column; /* Establishes flex context inside the card */
+            height: 100%; /* Forces card to fill the stretched grid cell */
             transition: var(--transition);
             box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+            border-radius: 2px;
+            overflow: hidden;
         }
         .course-card:hover {
             border-color: var(--gold-accent);
@@ -709,6 +724,7 @@
             position: relative;
             overflow: hidden;
             border-bottom: 1px solid var(--border-light);
+            flex-shrink: 0; /* Prevents image from shrinking */
         }
         .course-image img {
             width: 100%; height: 100%; object-fit: cover;
@@ -728,10 +744,10 @@
             border: 1px solid var(--border-light);
         }
         .course-content {
-            padding: 40px 32px;
-            flex-grow: 1;
+            padding: 32px;
             display: flex;
-            flex-direction: column;
+            flex-direction: column; /* Inner flex column */
+            flex-grow: 1; /* Instructs content area to consume remaining card height */
         }
         .course-subtitle {
             font-size: 0.75rem;
@@ -746,15 +762,36 @@
             margin-bottom: 24px;
             line-height: 1.3;
         }
-        .course-features { margin-bottom: 40px; flex-grow: 1; }
+        .course-features { 
+            margin-bottom: 24px; 
+            flex-grow: 1; /* Pushes the footer down */
+            /* Crucial addition: Limit max height and add scrollbar for uniform card sizes */
+            max-height: 320px;
+            overflow-y: auto;
+            padding-right: 12px;
+            scrollbar-width: thin;
+        }
+        /* Custom scrollbar for feature lists */
+        .course-features::-webkit-scrollbar {
+            width: 4px;
+        }
+        .course-features::-webkit-scrollbar-track {
+            background: var(--bg-offwhite);
+            border-radius: 4px;
+        }
+        .course-features::-webkit-scrollbar-thumb {
+            background: var(--border-dark);
+            border-radius: 4px;
+        }
         .course-features li {
             display: flex;
             align-items: flex-start;
-            gap: 16px;
+            gap: 12px;
             font-size: 0.9rem;
             color: var(--text-muted);
             margin-bottom: 12px;
         }
+        .course-features li:last-child { margin-bottom: 0; }
         .course-features svg { width: 16px; height: 16px; fill: var(--gold-accent); margin-top: 3px; flex-shrink: 0; }
         
         .course-footer {
@@ -763,6 +800,7 @@
             align-items: flex-end;
             border-top: 1px solid var(--border-light);
             padding-top: 24px;
+            margin-top: auto; /* Solidifies pushing this to the absolute bottom of the card */
         }
         .course-price-wrap { display: flex; flex-direction: column; }
         .course-old-price { font-size: 0.85rem; color: #999; text-decoration: line-through; margin-bottom: 4px; font-weight: 500;}
@@ -1405,16 +1443,24 @@
             border-color: #d9534f;
         }
 
-        @media (max-width: 1280px) {
-            .header .container { padding: 0 20px; }
-            .nav-links { gap: 16px; }
-            .nav-links a { font-size: 0.75rem; }
-            .brand-title { font-size: 1.3rem; }
+        /* --- RESPONSIVE FIXES FOR LAPTOPS --- */
+        /* Increased the threshold to ensure smaller laptops don't clip the nav */
+        @media (max-width: 1400px) {
+            .header .container { padding: 0 20px; gap: 12px; }
+            .nav-links { gap: 6px; padding: 4px; }
+            .nav-links a { padding: 6px 10px; font-size: 0.72rem; letter-spacing: 0.5px; }
+            .nav-actions { gap: 8px; }
+            .nav-actions .btn { padding: 8px 16px; font-size: 0.75rem; }
+            .brand-logo-img { width: 50px; height: 50px; }
+            .header.scrolled .brand-logo-img { width: 44px; height: 44px; }
+            .brand-title { font-size: 1.25rem; }
+            .brand-subtitle { font-size: 0.6rem; }
         }
 
-        @media (max-width: 1120px) {
-            .nav-links, .nav-actions { display: none; }
-            .mobile-menu-btn { display: inline-flex; }
+        /* Crucial Breakpoint adjustment: Trigger mobile menu on smaller laptops BEFORE they break */
+        @media (max-width: 1366px) {
+            .nav-links, .nav-actions { display: none !important; }
+            .mobile-menu-btn { display: inline-flex !important; }
             .mobile-nav.active {
                 display: flex; flex-direction: column;
                 position: absolute; top: 100%; left: 0; right: 0;
@@ -1433,7 +1479,9 @@
                 background-color: var(--bg-offwhite);
                 color: var(--forest-green);
             }
+        }
 
+        @media (max-width: 1280px) {
             .hero-title { font-size: 3.1rem; }
             .ecosystem-grid, .courses-grid, .books-grid, .syllabus-modal-grid { grid-template-columns: repeat(2, 1fr); }
             .about-grid { grid-template-columns: 1fr; gap: 56px; }
@@ -1469,7 +1517,6 @@
     <header class="header" id="header">
         <div class="container nav-container">
             <a href="#home" class="brand">
-                <!-- Updated Client Logo & Size -->
                 <img src="https://res.cloudinary.com/dzuxwvamy/image/upload/v1791733103/WhatsApp_Image_2026-10-11_at_12.57.36_PM_wl6n9r.jpg" alt="Geeky Researcher Logo" class="brand-logo-img">
                 <div class="brand-text">
                     <span class="brand-title">Geeky Researcher</span>
@@ -1540,9 +1587,11 @@
                     <span class="exam-tag">Ph.D.</span>
                 </div>
 
+                <!-- ADDED LOGIN & ENROLL TO HERO SECTION -->
                 <div class="hero-actions">
-                    <a href="#courses" class="btn btn-primary">Explore Programmes</a>
-                    <a href="#resources" class="btn btn-secondary">Watch Demo Lectures</a>
+                    <a href="register.html" class="btn btn-primary">Enroll Now</a>
+                    <a href="login.html" class="btn btn-outline-white">Login</a>
+                    <a href="#courses" class="btn btn-secondary">Explore Programmes</a>
                 </div>
 
                 <div class="hero-secondary-links">
@@ -2112,7 +2161,7 @@
             fetchDynamicCourses();
             fetchDynamicSyllabus();
             fetchDynamicAchievements();
-            fetchDynamicFeedback(); // NEW
+            fetchDynamicFeedback(); 
             fetchFullSyllabusPdf();
             fetchDynamicBooks(); 
             
@@ -2176,7 +2225,7 @@
             } catch (e) { console.log('Syllabus PDF API unavailable or returning no data.'); }
         }
 
-        // --- NEW: STUDENT FEEDBACK FETCH ---
+        // --- STUDENT FEEDBACK FETCH ---
         async function fetchDynamicFeedback() {
             const container = document.getElementById('dynamic-feedback-container');
             try {
