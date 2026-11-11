@@ -184,6 +184,17 @@ async function ensureTokensTableExists() {
 // Check on startup
 ensureTokensTableExists();
 
+async function scanAll(tableName, filterParams = {}) {
+    const params = { TableName: tableName, ...filterParams };
+    let items = [];
+    let data;
+    do {
+        data = await dynamoDB.scan(params).promise();
+        items = items.concat(data.Items || []);
+        params.ExclusiveStartKey = data.LastEvaluatedKey;
+    } while (data.LastEvaluatedKey);
+    return items;
+}
 
 /* ==========================================================================
    OTP & AUTHENTICATION ROUTES
@@ -1221,9 +1232,20 @@ app.post('/api/admin/tests', authenticateToken, isAdmin, async (req, res) => {
 
 app.get('/api/admin/tests', authenticateToken, isAdmin, async (req, res) => {
     try {
-        const data = await dynamoDB.scan({ TableName: TABLE_TESTS }).promise();
-        res.json(data.Items || []);
-    } catch (error) { res.status(500).json({ error: 'Fetch failed' }); }
+        // Fetch all items using the pagination helper
+        const items = await scanAll(TABLE_TESTS);
+        
+        // SORTING FIX: Ensure newest folders and tests appear first (equivalent to ORDER BY createdAt DESC)
+        const sortedItems = items.sort((a, b) => {
+            const dateA = a.createdAt ? new Date(a.createdAt) : new Date(0);
+            const dateB = b.createdAt ? new Date(b.createdAt) : new Date(0);
+            return dateB - dateA;
+        });
+        
+        res.json(sortedItems);
+    } catch (error) { 
+        res.status(500).json({ error: 'Fetch failed' }); 
+    }
 });
 
 app.delete('/api/admin/tests/:id', authenticateToken, isAdmin, async (req, res) => {
@@ -1382,54 +1404,45 @@ app.get('/api/student/recordings', authenticateToken, async (req, res) => {
 app.get('/api/student/tests', authenticateToken, async (req, res) => {
     try {
         const { level, email } = req.user;
-        const testData = await dynamoDB.scan({
-            TableName: TABLE_TESTS,
+        
+        // Use scanAll to prevent the 1MB truncation limit
+        const testItems = await scanAll(TABLE_TESTS, {
             FilterExpression: '#st = :status OR #st = :folderStatus',
             ExpressionAttributeNames: { '#st': 'status' },
             ExpressionAttributeValues: { ':status': 'published', ':folderStatus': 'folder' }
-        }).promise();
+        });
         
-        const scoreData = await dynamoDB.scan({
-            TableName: TABLE_SCORES,
+        const studentScores = await scanAll(TABLE_SCORES, {
             FilterExpression: 'studentEmail = :em',
             ExpressionAttributeValues: { ':em': email }
-        }).promise();
+        });
         
-        const studentScores = scoreData.Items || [];
         const now = new Date();
         const userLevel = (level || '').trim().toLowerCase(); 
 
-        // 1. Identify all tests that are legitimately accessible to this specific student
-        const accessibleTests = (testData.Items || []).filter(item => {
+        // Identify accessible tests
+        const accessibleTests = testItems.filter(item => {
             if (item.isFolder) return false;
-
             const levels = (item.levels || []).map(l => l.trim().toLowerCase());
             const hasLevelAccess = levels.includes(userLevel) || levels.includes('all levels');
             
             let hasCommenced = true;
             if (item.startTime && item.startTime !== null && item.startTime.trim() !== "") {
                 const startDate = new Date(item.startTime);
-                if (!isNaN(startDate.getTime())) {
-                    hasCommenced = startDate <= now;
-                }
+                if (!isNaN(startDate.getTime())) hasCommenced = startDate <= now;
             }
-            
             return hasLevelAccess && hasCommenced;
         });
 
-        // 2. Map Folders & Smartly Filter Out Empty/Inaccessible Ones
-        const allFoldersRaw = (testData.Items || []).filter(item => item.isFolder === true);
+        // Map Folders
+        const allFoldersRaw = testItems.filter(item => item.isFolder === true);
         const folderMap = new Map();
         allFoldersRaw.forEach(f => folderMap.set(f.id, f));
         
-        // This Set will collect ONLY the IDs of folders that house accessible tests
         const neededFolderIds = new Set();
-        
         accessibleTests.forEach(test => {
             if (test.folderId) {
                 let currentId = test.folderId;
-                // Trace up the hierarchy recursively. This ensures that if a test is buried 
-                // in a sub-folder, the parent folder is also passed to the UI so it can be navigated.
                 while (currentId && folderMap.has(currentId)) {
                     neededFolderIds.add(currentId);
                     currentId = folderMap.get(currentId).parentId;
@@ -1437,23 +1450,20 @@ app.get('/api/student/tests', authenticateToken, async (req, res) => {
             }
         });
 
-        // Pluck only the verified necessary folders
         const accessibleFolders = allFoldersRaw.filter(f => neededFolderIds.has(f.id));
 
-        // 3. Clean up the actual test payloads (calculate attempts, hide right answers)
+        // Clean up test payloads
         const sanitizedTests = accessibleTests.map(test => {
             let maxAttempts = 1; 
             if (test.levelAttempts) {
                 const normAttempts = {};
                 for (let k in test.levelAttempts) normAttempts[k.trim().toLowerCase()] = test.levelAttempts[k];
-
                 if (normAttempts[userLevel] !== undefined && normAttempts[userLevel] !== null) {
                     maxAttempts = parseInt(normAttempts[userLevel], 10);
                 } else if (normAttempts['all levels'] !== undefined && normAttempts['all levels'] !== null) {
                     maxAttempts = parseInt(normAttempts['all levels'], 10);
                 }
             }
-            
             const attemptCount = studentScores.filter(s => s.testId === test.id).length;
             const safeQuestions = (test.questions || []).map(q => {
                 const { correctOptions, ...safeQ } = q; 
@@ -1462,14 +1472,20 @@ app.get('/api/student/tests', authenticateToken, async (req, res) => {
             return { ...test, questions: safeQuestions, attemptCount, maxAttempts };
         });
         
-        // 4. Return the highly optimized payload
-        res.json([...accessibleFolders, ...sanitizedTests]);
+        // Combine and SORT the final output so newest folders/tests are at the top
+        const finalPayload = [...accessibleFolders, ...sanitizedTests];
+        finalPayload.sort((a, b) => {
+            const dateA = a.createdAt ? new Date(a.createdAt) : new Date(0);
+            const dateB = b.createdAt ? new Date(b.createdAt) : new Date(0);
+            return dateB - dateA;
+        });
+
+        res.json(finalPayload);
     } catch (error) { 
         console.error("Test fetch error:", error);
         res.status(500).json({ error: 'Failed to fetch tests' }); 
     }
 });
-
 app.post('/api/student/tests/submit', authenticateToken, async (req, res) => {
     try {
         const { email, name, level } = req.user;
